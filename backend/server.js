@@ -3,6 +3,7 @@ import cors from "cors";
 import mongoose from "mongoose";
 import { configDotenv } from "dotenv";
 import { config } from "./src/config/config.js";
+import { connectRedis } from "./src/helpers/redisClient.js";
 configDotenv();
 
 const app = express();
@@ -19,13 +20,24 @@ app.get("/", (req, res) => {
   });
 });
 
-mongoose.connect(mongourl).then(() => {
-  console.log("Connected to MongoDB");
-  app.listen(port, (error) => {
-    if (error) {
-      console.log("Error starting server:", error);
-    } else {
-      console.log(`server started at port ${port}`);
-    }
-  });
-});
+const startServer = async () => {
+  try {
+    await mongoose.connect(mongourl);
+    console.log("Connected to MongoDB");
+
+    await connectRedis();
+
+    app.listen(port, (error) => {
+      if (error) {
+        console.log("Error starting server:", error);
+      } else {
+        console.log(`Server started at port ${port}`);
+      }
+    });
+  } catch (error) {
+    console.error("Failed to start server:", error);
+    process.exit(1);
+  }
+};
+
+startServer();
