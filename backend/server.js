@@ -4,6 +4,8 @@ import mongoose from "mongoose";
 import { configDotenv } from "dotenv";
 import { config } from "./src/config/config.js";
 import { connectRedis } from "./src/helpers/redisClient.js";
+import authRouter from "./src/routers/authRouter.js";
+import userRouter from "./src/routers/userRouter.js";
 configDotenv();
 
 const app = express();
@@ -39,5 +41,7 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+app.use("/api/v1/auth", authRouter);
+app.use("/api/v1/users", userRouter);
 
 startServer();
