@@ -1,9 +1,12 @@
 import express from "express";
 import cors from "cors";
 import mongoose from "mongoose";
+import helmet from "helmet";
+import morgan from "morgan";
 import { configDotenv } from "dotenv";
 import { config } from "./src/config/config.js";
 import { connectRedis } from "./src/helpers/redisClient.js";
+import { authLimiter } from "./src/middlewares/rateLimiter.js";
 import authRouter from "./src/routers/authRouter.js";
 import userRouter from "./src/routers/userRouter.js";
 configDotenv();
@@ -12,6 +15,8 @@ const app = express();
 const port = config.port;
 const mongourl = config.mongoUrl;
 
+app.use(helmet());
+app.use(morgan("dev"));
 app.use(cors());
 app.use(express.json());
 
@@ -21,6 +26,9 @@ app.get("/", (req, res) => {
     message: "Welcome to NextMart Customer API",
   });
 });
+
+app.use("/api/v1/auth", authLimiter, authRouter);
+app.use("/api/v1/users", userRouter);
 
 const startServer = async () => {
   try {
@@ -41,7 +49,5 @@ const startServer = async () => {
     process.exit(1);
   }
 };
-app.use("/api/v1/auth", authRouter);
-app.use("/api/v1/users", userRouter);
 
 startServer();

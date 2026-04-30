@@ -3,13 +3,14 @@ configDotenv();
 
 export const config = {
   appName: process.env.APP_NAME,
+  clientUrl: process.env.CLIENT_URL,
   port: process.env.PORT || 5004,
   mongoUrl: process.env.MONGO_URL || "mongodb://localhost:27017/NextMart",
   jwt: {
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN,
   },
-  salt: parseInt(process.env.SALT),
+  salt: parseInt(process.env.SALT) || 10,
   smtp: {
     host: process.env.SMTP_HOST,
     port: process.env.SMTP_PORT,
@@ -31,8 +32,8 @@ export const config = {
     password: process.env.REDIS_PASSWORD,
   },
   otp: {
-    expiry: parseInt(process.env.OTP_EXPIRY),
-    length: parseInt(process.env.OTP_LENGTH),
+    expiry: parseInt(process.env.OTP_EXPIRY) || 300,
+    length: parseInt(process.env.OTP_LENGTH) || 6,
   },
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS),

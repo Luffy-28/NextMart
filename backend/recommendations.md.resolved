@@ -1,0 +1,217 @@
+# NextMart Backend — Recommendations
+
+## ✅ Completed Fixes
+
+| # | File | Fix |
+|---|---|---|
+| 1 | `otphelper.js` | Fixed undefined `key` variable in `storeOtp` |
+| 2 | `otphelper.js` | Added missing `deleteOTP` function |
+| 3 | `otphelper.js` | Fixed `expirySeconds` param casing |
+| 4 | `redisClient.js` | Created centralized Redis client module |
+| 5 | `server.js` | Refactored — removed duplicate Redis code, async startup |
+| 6 | `emailHelpers.js` | Moved `transporter` to module scope |
+| 7 | `.env` | Fixed `AWS_REGION` and `SMTP_SECURE` values |
+| 8 | `config.js` | Fixed `SMTP_SECURE` string → boolean conversion |
+| 9 | `userController.js` | Renamed `verifyOTP` controller to `verificationOTP` (naming collision) |
+| 10 | `userController.js` | Added missing `otpExists` import |
+| 11 | `userController.js` | Fixed `storeOtpemail` → `storeOtp` typo |
+| 12 | `authRouter.js` / `userRouter.js` | Fixed `express()` → `express.Router()` |
+| 13 | `verificationRoute.js` | Deleted duplicate route file |
+| 14 | `userController.js` | Fixed password leak in login response |
+| 15 | `userController.js` | Fixed broken `req.body` check in login |
+| 16 | `authMiddleware.js` | Fixed user document mutation (`user.password = ""`) |
+| 17 | `emailHelpers.js` | Replaced `process.env` with `config` consistently |
+| 18 | `config.js` | Added `clientUrl`, added defaults for `salt`, `otp.expiry`, `otp.length` |
+| 19 | `server.js` | Moved route mounting before `startServer()` |
+| 20 | `rateLimiter.js` | Created rate limiter middleware in `src/middlewares/` |
+
+---
+
+## 🔴 Still Pending — Quick Fixes
+
+### 1. Bearer token parsing in `authMiddleware.js`
+Most clients send `Authorization: Bearer <token>`. Your middleware reads the raw header, which includes the "Bearer " prefix — token verification will fail.
+
+```js
+// Current (broken with standard clients)
+const token = req.headers.authorization;
+
+// Fix
+const authHeader = req.headers.authorization;
+if (!authHeader?.startsWith("Bearer ")) {
+  return res.status(401).send({ status: "error", message: "No token" });
+}
+const token = authHeader.split(" ")[1];
+```
+
+### 2. `User.insertOne()` → `User.create()` in `registerUser`
+Mongoose doesn't have `insertOne()` on models. Use `User.create(newUser)` instead:
+```diff
+- const userData = await User.insertOne(newUser);
++ const userData = await User.create(newUser);
+```
+
+### 3. Inconsistent response key in `verificationOTP`
+```diff
+- success: "success",   // ← wrong key name
++ status: "success",    // ← matches all other endpoints
+```
+
+### 4. Typo in `resendOtp` message
+```diff
+- message: "OTP has been resent yto your email"
++ message: "OTP has been resent to your email"
+```
+
+### 5. Remove redundant `generateAccessToken` in `tokenHelper.js`
+It's just a wrapper around `signToken` doing nothing extra. Remove it to avoid confusion.
+
+### 6. CORS restriction
+```js
+// Current (allows all origins)
+app.use(cors());
+
+// Recommended for production
+app.use(cors({
+  origin: config.clientUrl,
+  credentials: true,
+}));
+```
+
+---
+
+## 🟡 Should Implement — Security & Reliability
+
+### 7. Input validation middleware
+No routes validate input before hitting the controller. Install `express-validator` or `joi`:
+
+```bash
+npm install express-validator
+```
+
+Create `src/middlewares/validators.js`:
+```js
+import { body, validationResult } from "express-validator";
+
+export const handleValidationErrors = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ status: "error", errors: errors.array() });
+  }
+  next();
+};
+
+export const registerValidator = [
+  body("newUser.name").trim().notEmpty().withMessage("Name is required"),
+  body("newUser.email").isEmail().normalizeEmail().withMessage("Valid email required"),
+  body("newUser.password").isLength({ min: 8 }).withMessage("Password must be 8+ characters"),
+  handleValidationErrors,
+];
+
+export const loginValidator = [
+  body("email").isEmail().normalizeEmail().withMessage("Valid email required"),
+  body("password").notEmpty().withMessage("Password is required"),
+  handleValidationErrors,
+];
+```
+
+Then use in routes:
+```js
+import { registerValidator, loginValidator } from "../middlewares/validators.js";
+
+router.post("/register", registerValidator, registerUser);
+router.post("/login", loginValidator, loginUser);
+```
+
+### 8. Centralized error handling middleware
+Instead of `try/catch` + `console.log` in every controller, create a global error handler:
+
+Create `src/middlewares/errorHandler.js`:
+```js
+export const errorHandler = (err, req, res, next) => {
+  console.error(err.stack);
+
+  const statusCode = err.statusCode || 500;
+  res.status(statusCode).json({
+    status: "error",
+    message: err.message || "Internal server error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+  });
+};
+```
+
+Add to `server.js` (must be **last** middleware):
+```js
+app.use(errorHandler);
+```
+
+### 9. Helmet.js — security headers
+One-line security win (XSS protection, MIME sniffing, clickjacking):
+
+```bash
+npm install helmet
+```
+```js
+import helmet from "helmet";
+app.use(helmet());
+```
+
+### 10. Morgan — HTTP request logging
+```bash
+npm install morgan
+```
+```js
+import morgan from "morgan";
+app.use(morgan("dev"));
+```
+
+---
+
+## 🟢 New Features to Build
+
+### 11. Password Reset Flow
+You already have OTP + email + Redis. Add:
+- `POST /api/v1/auth/forgot-password` → send OTP to email
+- `POST /api/v1/auth/reset-password` → verify OTP + set new password
+
+### 12. Profile Update Endpoint
+- `PUT /api/v1/users/profile` → update name, image
+- `PUT /api/v1/users/change-password` → change password (requires old password)
+
+### 13. Product System
+- Product model (name, description, price, category, images, stock)
+- `GET /api/v1/products` — list/search/filter products
+- `GET /api/v1/products/:id` — product detail
+
+### 14. Cart System
+- Cart model (user, items, quantities)
+- `GET/POST/PUT/DELETE /api/v1/cart` — CRUD operations
+
+### 15. Wishlist
+- `GET/POST/DELETE /api/v1/wishlist`
+
+### 16. Order Management
+- Order model (user, items, total, status, address)
+- `POST /api/v1/orders` — place order
+- `GET /api/v1/orders` — order history
+- `GET /api/v1/orders/:id` — order detail
+
+### 17. Address Management
+- `GET/POST/PUT/DELETE /api/v1/users/addresses`
+
+---
+
+## Priority Order
+
+```
+1. Fix Bearer token parsing          ← 2 minutes, breaks all standard clients
+2. Fix User.insertOne → User.create  ← 1 minute, may crash at runtime
+3. Fix inconsistent response key     ← 1 minute
+4. Add input validation              ← 30 minutes, prevents bad data
+5. Add Helmet + Morgan               ← 5 minutes, security + debugging
+6. Centralized error handler         ← 20 minutes, cleaner code
+7. Password reset flow               ← 1 hour, you have the building blocks
+8. Profile update endpoints          ← 30 minutes
+9. Product system                    ← Core feature, build next
+10. Cart → Wishlist → Orders         ← Build in sequence
+```

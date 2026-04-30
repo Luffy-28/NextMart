@@ -4,7 +4,7 @@ import { config } from "../config/config.js";
 const transporter = nodemailer.createTransport(config.smtp);
 export const sendOTPEmail = async (email, otp, name) => {
   const mailOptions = {
-    from: `"${process.env.APP_NAME || "NextMart"}" <${config.smtp.auth.user}>`,
+    from: `"${config.appName || "NextMart"}" <${config.smtp.auth.user}>`,
     to: email,
     subject: "Verify Your Email - OTP Code",
     html: `
@@ -37,14 +37,14 @@ export const sendOTPEmail = async (email, otp, name) => {
             <div class="otp-box">
               <p style="margin: 0; color: #666;">Your OTP Code</p>
               <div class="otp-code">${otp}</div>
-              <p style="margin: 0; color: #666; font-size: 14px;">Valid for ${process.env.OTP_EXPIRY / 60} minutes</p>
+              <p style="margin: 0; color: #666; font-size: 14px;">Valid for ${config.otp.expiry / 60} minutes</p>
             </div>
             
             <p>If you didn't request this code, please ignore this email.</p>
             
             <p class="warning">⚠️ Never share this code with anyone. We will never ask for your OTP.</p>
             
-            <p>Best regards,<br>The ${process.env.APP_NAME || "Auth System"} Team</p>
+            <p>Best regards,<br>The ${config.appName || "Auth System"} Team</p>
           </div>
           <div class="footer">
             <p>This is an automated email. Please do not reply to this message.</p>
@@ -95,11 +95,11 @@ export const sendWelcomeEmail = async(email, name) => {
             <p>Congratulations! Your email has been successfully verified.</p>
             <p>You can now access all features of your account.</p>
             
-            <a href="${process.env.CLIENT_URL}/dashboard" class="button">Go to Dashboard</a>
+            <a href="${config.clientUrl}/dashboard" class="button">Go to Dashboard</a>
             
             <p>If you have any questions, feel free to reach out to our support team.</p>
             
-            <p>Best regards,<br>The ${process.env.APP_NAME || "Auth System"} Team</p>
+            <p>Best regards,<br>The ${config.appName} Team</p>
           </div>
         </div>
       </body>
