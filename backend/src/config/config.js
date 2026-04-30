@@ -10,6 +10,11 @@ export const config = {
     secret: process.env.JWT_SECRET,
     expiresIn: process.env.JWT_EXPIRES_IN,
   },
+  jwtRefresh: {
+    secret: process.env.JWT_REFRESH_SECRET,
+    expiresIn: process.env.JWT_REFRESH_EXPIRES_IN,
+  },
+
   salt: parseInt(process.env.SALT) || 10,
   smtp: {
     host: process.env.SMTP_HOST,

@@ -37,3 +37,21 @@ export const authMiddleware = async (req, res, next) => {
     });
   }
 };
+
+export const isAdmin=async(req,res,next) =>{
+try {
+  if(!req.user.role.includes("admin")){
+    return res.status(403).send({
+      status:"error",
+      messgae:"Admin Role required"
+    })
+  }
+  next();
+} catch (error) {
+  console.log(error)
+  return res.status(500).send({
+    status:"error",
+    message:"Unauthorize access"
+  })
+}
+}

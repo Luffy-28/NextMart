@@ -14,3 +14,13 @@ export const verifyToken = (token) => {
 export const generateAccessToken = (payload) => {
   return signToken(payload);
 };
+
+export const signRefreshToken =(payload) =>{
+  return jwt.sign(payload,config.jwtRefresh.secret,{
+    expiresIn:config.jwtRefresh.expiresIn,
+  })
+}
+
+export const verifyRefreshToken = (token) =>{
+  return jwt.verify(token,config.jwtRefresh.secret)
+}

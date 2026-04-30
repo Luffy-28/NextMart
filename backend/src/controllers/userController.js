@@ -8,7 +8,7 @@ import {
   storeOtp,
   verifyOTP,
 } from "../helpers/otphelper.js";
-import { signToken } from "../helpers/tokenHelper.js";
+import { signRefreshToken, signToken, verifyRefreshToken } from "../helpers/tokenHelper.js";
 import { User } from "../models/userModel.js";
 
 //Register User
@@ -151,7 +151,39 @@ export const resendOtp = async (req, res) => {
     });
   }
 };
+// REFRESH TOKEN
+export const generateAccessToken = async(req,res) =>{
+  try {
+    const refreshToken = req.headers.authorization;
 
+    const data = verifyRefreshToken(refreshToken);
+
+    const user = await User.findOne({email: data.email});
+    if(user){
+      const payload = {email: user.email};
+      const accessToken = signToken(payload);
+      return res.send({
+        status: "success",
+        message: "Access Token generated successfully",
+        accessToken,
+      });
+    } else {
+      return res.send({
+        status: "error",
+        message: "User not found",
+      })
+    }
+    
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status:"error",
+      message:"error generting access token"
+    })
+  }
+}
+
+//Login USER
 export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -165,12 +197,14 @@ export const loginUser = async (req, res) => {
         if (isMatched) {
           const payload = { email: userData.email };
           const accessToken = signToken(payload);
+          const refreshToken = signRefreshToken(payload)
           const { password, ...safeUser } = userData.toObject();
           return res.status(200).send({
             status: "success",
             message: "User logged in successfully",
             data: safeUser,
             accessToken,
+            refreshToken,
           });
         } else {
           return res.status(400).send({
@@ -198,6 +232,8 @@ export const loginUser = async (req, res) => {
     });
   }
 };
+
+//GET USER DETAILS
 export const getUserDetail = async (req, res) => {
   try {
     return res.status(200).send({
