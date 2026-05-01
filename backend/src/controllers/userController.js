@@ -8,13 +8,17 @@ import {
   storeOtp,
   verifyOTP,
 } from "../helpers/otphelper.js";
-import { signRefreshToken, signToken, verifyRefreshToken } from "../helpers/tokenHelper.js";
+import {
+  signRefreshToken,
+  signToken,
+  verifyRefreshToken,
+} from "../helpers/tokenHelper.js";
 import { User } from "../models/userModel.js";
 
 //Register User
 export const registerUser = async (req, res) => {
   try {
-    let { newUser } = req.body;
+    let newUser = req.body;
     newUser.password = hashPassword(newUser.password);
     const existingUser = await User.findOne({ email: newUser.email });
     if (existingUser) {
@@ -152,15 +156,15 @@ export const resendOtp = async (req, res) => {
   }
 };
 // REFRESH TOKEN
-export const generateAccessToken = async(req,res) =>{
+export const generateAccessToken = async (req, res) => {
   try {
     const refreshToken = req.headers.authorization;
 
     const data = verifyRefreshToken(refreshToken);
 
-    const user = await User.findOne({email: data.email});
-    if(user){
-      const payload = {email: user.email};
+    const user = await User.findOne({ email: data.email });
+    if (user) {
+      const payload = { email: user.email };
       const accessToken = signToken(payload);
       return res.send({
         status: "success",
@@ -171,17 +175,16 @@ export const generateAccessToken = async(req,res) =>{
       return res.send({
         status: "error",
         message: "User not found",
-      })
+      });
     }
-    
   } catch (error) {
     console.log(error);
     return res.status(500).send({
-      status:"error",
-      message:"error generting access token"
-    })
+      status: "error",
+      message: "error generting access token",
+    });
   }
-}
+};
 
 //Login USER
 export const loginUser = async (req, res) => {
@@ -197,7 +200,7 @@ export const loginUser = async (req, res) => {
         if (isMatched) {
           const payload = { email: userData.email };
           const accessToken = signToken(payload);
-          const refreshToken = signRefreshToken(payload)
+          const refreshToken = signRefreshToken(payload);
           const { password, ...safeUser } = userData.toObject();
           return res.status(200).send({
             status: "success",
