@@ -8,6 +8,7 @@ import {
   storeOtp,
   verifyOTP,
 } from "../helpers/otphelper.js";
+import { OAuth2Client } from "google-auth-library";
 import {
   signRefreshToken,
   signToken,
@@ -15,6 +16,7 @@ import {
 } from "../helpers/tokenHelper.js";
 import { User } from "../models/userModel.js";
 
+const client = new OAuth2Client(config.google.clientId);
 //Register User
 export const registerUser = async (req, res) => {
   try {
@@ -156,7 +158,7 @@ export const resendOtp = async (req, res) => {
   }
 };
 // REFRESH TOKEN
-export const generateAccessToken = async (req, res) => {
+export const generateAccessTokens = async (req, res) => {
   try {
     const refreshToken = req.headers.authorization;
 
@@ -252,3 +254,58 @@ export const getUserDetail = async (req, res) => {
     });
   }
 };
+export const verifyGoogleLogin = async(req,res) =>{
+  try {
+    const token = req.body.token || req.body.idToken;
+     //    // 1. Ask Google's library to 
+     // cryptographically verify the token
+     const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: config.google.clientId,
+     });
+     // 2. extract the verified payload
+   const payload = ticket.getPayload();
+   const googleId = payload['sub'];
+   const email = payload['email']
+   const name = payload['name']
+   const image = payload['picture']
+
+   //3. find the user and create a user in the mongodb using google account
+
+   let user = await User.findOne({email})
+   if(user){
+    if(!user.googleId){
+      user.googleId = googleId;
+        user.isVerified = true;
+        await user.save();
+    }
+   }else{
+    user = await User.insertOne({
+      name,
+      email,
+      googleId,
+      image,
+      isVerified: true,
+    })
+   }
+   const accessToken = signToken({email: user.email})
+   const refreshToken = signRefreshToken({email: user.email})
+   const {password, ...safeUser} = user.toObject();
+
+   return res.status(200).send({
+    status:"success",
+    message: "google login successful",
+    accessToken,
+    refreshToken,
+    data: safeUser,
+   })
+    
+  } catch (error) {
+    console.log(error)
+    return res.status(500).send({
+      status:"error",
+      message:"error verifying google login",
+      error:error.message
+    })
+  }
+}

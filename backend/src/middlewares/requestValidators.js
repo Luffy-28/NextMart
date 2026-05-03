@@ -22,8 +22,8 @@ try {
     const newUserSchema =z.object({
         name: z.string(),
         email: z.email(),  
-        password: z.string().min(6).max(12).regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/, "Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character"),
-        confirmPassword: z.string().nonempty("Confirm password is required")      
+        password: z.string().min(6).max(20),
+        confirmPassword: z.string().nonempty("confirm password is required")
     }).strict().refine((data) => data.password === data.confirmPassword,{
         message:"password do not match",
         path:["confirmPassword"]

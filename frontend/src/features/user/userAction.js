@@ -1,4 +1,3 @@
-import { set } from "mongoose";
 import {
   loginDataApi,
   userDetailsApi,
@@ -24,16 +23,20 @@ export const loginUser = (formData) => async (dispatch) => {
       const userResponse = await userDetailsApi();
       if (userResponse.status === "success") {
         dispatch(setUser(userResponse.user));
+        return true;
       } else {
         dispatch(
           setError(userResponse.message || "Failed to fetch user details"),
         );
+        return false;
       }
     } else {
       dispatch(setError(data.message || "Login failed"));
+      return false;
     }
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
+    return false;
   }
 };
 
@@ -46,8 +49,10 @@ export const registerUser = (formData) => async (dispatch) => {
     } else {
       dispatch(setError(data.message || "Registration failed"));
     }
+    return data;
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
+    return { status: "error", message: error.message };
   }
 };
 
@@ -60,8 +65,10 @@ export const verifyOtp = (otpData) => async (dispatch) => {
     } else {
       dispatch(setError(data.message || "OTP verification failed"));
     }
+    return data;
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
+    return { status: "error", message: error.message };
   }
 };
 
@@ -75,8 +82,10 @@ export const resendOtp = (email) => async (dispatch) => {
     } else {
       dispatch(setError(data.message || "Failed to resend OTP"));
     }
+    return data;
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
+    return { status: "error", message: error.message };
   }
 };
 
@@ -98,5 +107,21 @@ export const autoLogin = () => async (dispatch) => {
     }
   } catch (error) {
     console.log(error);
+  }
+};
+
+export const verifyGoogleLoginAction = (googleData) => async (dispatch) => {
+  try {
+    dispatch(setLoading(true));
+    const response = await googleLoginApi(googleData);
+    if (response.status === "success") {
+      dispatch(setUser(response.data)); 
+    } else {
+      dispatch(setError(response.message || "Google login failed"));
+    }
+    return response;
+  } catch (error) {
+    dispatch(setError(error.message || "An error occurred"));
+    return { status: "error", message: error.message };
   }
 };

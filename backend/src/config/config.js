@@ -44,4 +44,10 @@ export const config = {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS),
   },
+  google:{
+    clientId: process.env.CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
+    sessionSecret: process.env.SESSION_SECRET,
+
+  }
 };

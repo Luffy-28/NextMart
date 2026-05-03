@@ -17,8 +17,8 @@ export const apiProcessor = async ({
         "Content-Type": contentType ?? "application/json",
         Authorization: isPrivate
           ? isRefresh
-            ? localStorage.getItem("refreshToken")
-            : localStorage.getItem("accessToken")
+            ? `Bearer ${localStorage.getItem("refreshToken")}`
+            : `Bearer ${localStorage.getItem("accessToken")}`
           : "",
       },
     });

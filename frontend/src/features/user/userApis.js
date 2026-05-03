@@ -39,3 +39,11 @@ export const userDetailsApi = async () => {
     isPrivate: true,
   });
 };
+
+export const googleLoginApi = async(googleData) =>{
+  return await apiProcessor({
+    url: import.meta.env.VITE_ROOT_URL + "/api/v1/auth/googleVerification",
+    method:"POST",
+    data:googleData
+  })
+}
