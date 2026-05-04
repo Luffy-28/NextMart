@@ -16,6 +16,7 @@ import Categories from "./pages/Categories.jsx";
 import Deals from "./pages/Deals.jsx";
 import Profile from "./pages/Profile.jsx";
 import "./styles/styles.css"
+import "./styles/animations.css"
 
 function App() {
   const dispatch = useDispatch();
