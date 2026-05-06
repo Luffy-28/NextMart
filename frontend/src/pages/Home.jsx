@@ -1,166 +1,326 @@
+import React from 'react';
 import { Link } from 'react-router-dom';
-import { Container, Row, Col, Button, Card, Form } from 'react-bootstrap';
+import Reveal from '../components/ui/Reveal';
+import CategoryCard from '../components/category/CategoryCard';
+import ProductCard from '../components/product/ProductCard';
+import Rating from '../components/ui/Rating';
+import ThreeHero from '../components/ui/ThreeHero';
 
 const Home = () => {
+  // Mock data — unchanged
+  const categories = [
+    { id: 'electronics', name: 'Electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80', count: '1.2k+ Products' },
+    { id: 'fashion', name: 'Fashion', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80', count: '850+ Products' },
+    { id: 'home', name: 'Home & Living', image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&q=80', count: '430+ Products' },
+    { id: 'beauty', name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?w=400&q=80', count: '620+ Products' },
+    { id: 'sports', name: 'Sports', image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80', count: '290+ Products' },
+    { id: 'toys', name: 'Toys', image: 'https://images.unsplash.com/photo-1539650116574-8efeb43e2750?w=400&q=80', count: '150+ Products' },
+    { id: 'accessories', name: 'Accessories', image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80', count: '310+ Products' },
+    { id: 'gadgets', name: 'Gadgets', image: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=400&q=80', count: '540+ Products' },
+  ];
+
+  const trending = [
+    { id: 1, name: 'Premium Wireless Headphones', price: 249.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80', rating: 5, badge: 'Hot' },
+    { id: 2, name: 'Smart Watch Series 7', price: 399.00, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80', rating: 4, badge: 'Trending' },
+    { id: 3, name: 'Minimalist Leather Wallet', price: 45.00, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&q=80', rating: 5 },
+    { id: 4, name: 'Ergonomic Office Chair', price: 189.50, image: 'https://images.unsplash.com/photo-1505797149-43b0ad7664a3?w=600&q=80', rating: 4 },
+    { id: 5, name: 'Mechanical Keyboard RGB', price: 120.00, image: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=600&q=80', rating: 5, badge: 'New' },
+    { id: 6, name: 'Portable Bluetooth Speaker', price: 79.99, image: 'https://images.unsplash.com/photo-1608156639585-b3a032ef9689?w=600&q=80', rating: 4 },
+    { id: 7, name: 'Instant Film Camera', price: 69.00, image: 'https://images.unsplash.com/photo-1526170315873-3a561629923d?w=600&q=80', rating: 5 },
+    { id: 8, name: 'Yoga Mat Premium', price: 35.00, image: 'https://images.unsplash.com/photo-1592432678899-9a25df5d1228?w=600&q=80', rating: 4 },
+  ];
+
+  const featuredProducts = trending.slice(0, 4);
+
+  const testimonials = [
+    { id: 1, name: 'Sarah Johnson', role: 'Fashion Blogger', quote: 'The collection is absolutely stunning. I found pieces I couldn\'t find anywhere else!', avatar: 'https://i.pravatar.cc/150?u=sarah', rating: 5 },
+    { id: 2, name: 'Michael Chen', role: 'Tech Enthusiast', quote: 'Fast shipping and great customer service. My gadgets arrived in perfect condition.', avatar: 'https://i.pravatar.cc/150?u=michael', rating: 5 },
+    { id: 3, name: 'Emma Davis', role: 'Interior Designer', quote: 'Love the home decor section. It adds such a unique touch to my projects.', avatar: 'https://i.pravatar.cc/150?u=emma', rating: 4 },
+    { id: 4, name: 'James Wilson', role: 'Verified Buyer', quote: 'Unbeatable prices and high-quality products. NexMart is my new favorite shop!', avatar: 'https://i.pravatar.cc/150?u=james', rating: 5 },
+  ];
+
   return (
-    <div className="bg-brand-light pb-5" style={{ minHeight: '100vh' }}>
-      {/* Hero Section */}
-      <section className="bg-brand-dark text-white position-relative overflow-hidden" style={{ padding: '80px 0' }}>
-        {/* Abstract Background Elements */}
-        <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'linear-gradient(135deg, rgba(13,148,136,0.15) 0%, transparent 100%)' }}></div>
-        <div className="position-absolute" style={{ top: '-150px', right: '-100px', width: '500px', height: '500px', background: 'radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%)', borderRadius: '50%', filter: 'blur(40px)' }}></div>
-        
-        <Container fluid className="px-container position-relative z-1">
-          <Row className="align-items-center justify-content-between gy-5">
-            <Col lg={6} xl={5} className="pe-xl-5">
-              <span className="d-inline-block px-3 py-1 mb-4 rounded-pill fs-12 fw-bold tracking-widest" style={{ background: 'rgba(13,148,136,0.2)', color: '#2DD4BF' }}>
-                ✨ NEW COLLECTION 2025
-              </span>
-              <h1 className="fw-bold mb-4 tracking-tight" style={{ fontSize: 'clamp(48px, 6vw, 72px)', lineHeight: '1.1' }}>
-                Shop Smarter.<br/><span style={{ color: '#2DD4BF' }}>Live Better.</span>
-              </h1>
-              <p className="fs-18 text-brand-white-70 mb-5 lh-16 fw-medium" style={{ maxWidth: '480px' }}>
-                Discover our curated selection of premium products. Free shipping on orders over $50 • Fast delivery across Australia.
-              </p>
-              <div className="d-flex flex-wrap gap-3">
-                <Button as={Link} to="/products" className="rounded-pill border-0 d-inline-flex align-items-center justify-content-center px-5 h-56 fs-16 fw-bold btn-brand shadow-lg transition-transform hover-scale">
-                  Shop Now →
-                </Button>
-                <Button as={Link} to="/deals" variant="light" className="rounded-pill border-0 d-inline-flex align-items-center justify-content-center px-5 h-56 fs-16 fw-bold text-brand-dark bg-white shadow-lg transition-transform hover-scale hover-bg-light">
-                  View Deals
-                </Button>
-              </div>
-            </Col>
-            <Col lg={6} xl={6} className="position-relative">
-              <div className="position-relative mx-auto" style={{ maxWidth: '600px' }}>
-                <div className="position-absolute w-100 h-100 rounded-circle" style={{ background: 'radial-gradient(circle, rgba(13,148,136,0.2) 0%, transparent 70%)', transform: 'scale(1.2)', zIndex: 0 }}></div>
-                <img 
-                  src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&q=80" 
-                  alt="Premium Sneakers" 
-                  className="w-100 position-relative z-1 drop-shadow-2xl" 
-                  style={{ filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.3))', transform: 'rotate(-5deg) scale(1.05)' }} 
-                />
-              </div>
-            </Col>
-          </Row>
-        </Container>
+    <>
+      {/* ===== Hero ===== */}
+      <section className="nex-hero">
+        <ThreeHero />
+        <div className="nex-hero-grid" />
+        <div className="nex-orb" style={{ width: '600px', height: '600px', background: '#8B5CF6', top: '-15%', left: '-8%' }} />
+        <div className="nex-orb" style={{ width: '500px', height: '500px', background: '#06B6D4', bottom: '-15%', right: '-8%' }} />
+        <div className="nex-orb" style={{ width: '300px', height: '300px', background: '#F472B6', top: '20%', right: '15%' }} />
+
+        <div className="container py-5 position-relative" style={{ zIndex: 2 }}>
+          <div className="row align-items-center g-5">
+            <div className="col-lg-6">
+              <Reveal>
+                <span className="nex-pill mb-4 d-inline-flex">
+                  <i className="bi bi-stars me-1" />New Collection 2026
+                </span>
+                <h1 className="display-3 fw-bold mb-3 lh-1 nex-hero-title">
+                  Discover, Shop &<br />
+                  <span className="nex-gradient-text">Live Beautifully</span>
+                </h1>
+                <p className="lead mb-4 nex-hero-sub" style={{ maxWidth: '520px' }}>
+                  Curated collections of premium products at unbeatable prices.
+                  Free shipping over $50, easy returns, always.
+                </p>
+                <div className="d-flex flex-wrap gap-3">
+                  <Link to="/products" className="nex-btn-primary">
+                    Shop now <i className="bi bi-arrow-right" />
+                  </Link>
+                  <Link to="/deals" className="nex-btn-outline">
+                    <i className="bi bi-fire nex-pink" /> Today's deals
+                  </Link>
+                </div>
+              </Reveal>
+
+              <Reveal delay={300}>
+                <div className="row g-3 mt-4">
+                  {[
+                    { value: '50K+', label: 'Happy customers', icon: 'bi-people' },
+                    { value: '10K+', label: 'Products', icon: 'bi-box-seam' },
+                    { value: '4.9★', label: 'Avg. rating', icon: 'bi-star-fill' },
+                  ].map((s) => (
+                    <div className="col-4" key={s.label}>
+                      <div className="nex-stat-item">
+                        <i className={`bi ${s.icon} nex-text-purple`} style={{ fontSize: '1.4rem' }} />
+                        <div>
+                          <div className="fw-bold lh-1 nex-gradient-text" style={{ fontSize: '1.3rem' }}>{s.value}</div>
+                          <small className="nex-text-muted" style={{ fontSize: '0.72rem' }}>{s.label}</small>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Reveal>
+            </div>
+
+            {/* Hero floating cards */}
+            <div className="col-lg-6 d-none d-lg-block">
+              <Reveal delay={150} x={20} y={0}>
+                <div className="position-relative" style={{ height: '500px' }}>
+                  <div className="nex-float-card position-absolute" style={{ top: 0, right: 0, width: '290px', zIndex: 3 }}>
+                    <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80" alt="Headphones"
+                      style={{ width: '100%', height: '270px', objectFit: 'cover', borderRadius: '12px 12px 0 0' }} />
+                    <div style={{ padding: '14px 16px' }}>
+                      <span className="nex-badge-inline" style={{ background: 'rgba(244,114,182,0.2)', color: '#F472B6', border: '1px solid rgba(244,114,182,0.3)' }}>FEATURED</span>
+                      <h6 className="mt-2 mb-1 nex-text-light fw-semibold">Premium Headphones</h6>
+                      <span className="nex-gradient-text fw-bold">$249.99</span>
+                    </div>
+                  </div>
+
+                  <div className="nex-float-card position-absolute" style={{ bottom: 0, left: 0, width: '255px', zIndex: 2 }}>
+                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80" alt="Watch"
+                      style={{ width: '100%', height: '230px', objectFit: 'cover', borderRadius: '12px 12px 0 0' }} />
+                    <div style={{ padding: '14px 16px' }}>
+                      <span className="nex-badge-inline" style={{ background: 'rgba(139,92,246,0.2)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)' }}>TRENDING</span>
+                      <h6 className="mt-2 mb-1 nex-text-light fw-semibold">Smart Watch Pro</h6>
+                      <span className="nex-gradient-text fw-bold">$199.00</span>
+                    </div>
+                  </div>
+
+                  <div className="nex-float-badge position-absolute" style={{ top: '44%', left: '-6%', zIndex: 4 }}>
+                    <div className="d-flex align-items-center justify-content-center rounded-circle nex-icon-grad" style={{ width: '40px', height: '40px', flexShrink: 0 }}>
+                      <i className="bi bi-truck text-white" />
+                    </div>
+                    <div>
+                      <div className="fw-bold small nex-text-light">Free shipping</div>
+                      <small className="nex-text-muted">On orders over $50</small>
+                    </div>
+                  </div>
+                </div>
+              </Reveal>
+            </div>
+          </div>
+        </div>
       </section>
 
-      {/* Shop by Category */}
-      <Container fluid className="mt-5 pt-5 px-container">
-        <div className="d-flex justify-content-between align-items-end mb-4 pb-2">
-          <div>
-            <h2 className="fw-bold fs-32 text-brand-dark mb-2 tracking-tight">Shop by Category</h2>
-            <p className="mb-0 fs-16 text-brand-muted">Browse our curated collections</p>
-          </div>
-        </div>
-        <Row className="g-4 row-cols-2 row-cols-md-3 row-cols-lg-5">
-          {[
-            { name: 'Electronics', image: 'https://images.unsplash.com/photo-1498049794561-7780e7231661?w=400&q=80', items: '240+ items' },
-            { name: 'Fashion', image: 'https://images.unsplash.com/photo-1445205170230-053b83016050?w=400&q=80', items: '342+ items' },
-            { name: 'Home & Living', image: 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?w=400&q=80', items: '89+ items' },
-            { name: 'Sports', image: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=400&q=80', items: '156+ items' },
-            { name: 'Beauty', image: 'https://images.unsplash.com/photo-1596462502278-27bf85033e5a?w=400&q=80', items: '210+ items' }
-          ].map((cat, idx) => (
-            <Col key={idx}>
-              <Card as={Link} to={`/category/${cat.name.toLowerCase()}`} className="h-100 text-center text-decoration-none border-0 shadow-sm transition-all hover-shadow" style={{ borderRadius: '20px', padding: '24px 16px' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-6px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}>
-                <Card.Body className="d-flex flex-column align-items-center p-0">
-                  <div className="rounded-circle mb-4 overflow-hidden shadow-sm" style={{ width: '100px', height: '100px', border: '4px solid white' }}>
-                    <img src={cat.image} alt={cat.name} className="w-100 h-100 object-fit-cover transition-transform hover-scale" />
+      {/* ===== Benefits bar ===== */}
+      <section className="nex-benefits-bar">
+        <div className="container">
+          <div className="row g-3 text-center text-md-start">
+            {[
+              { icon: 'bi-truck', title: 'Free shipping', text: 'On orders over $50' },
+              { icon: 'bi-arrow-counterclockwise', title: '30-day returns', text: 'Hassle-free' },
+              { icon: 'bi-shield-check', title: 'Secure payment', text: '256-bit SSL' },
+              { icon: 'bi-headset', title: '24/7 support', text: 'Anytime help' },
+            ].map((f) => (
+              <div className="col-6 col-md-3" key={f.title}>
+                <div className="d-flex align-items-center gap-2 justify-content-center justify-content-md-start">
+                  <i className={`bi ${f.icon} nex-text-purple`} style={{ fontSize: '1.6rem' }} />
+                  <div>
+                    <div className="fw-semibold small nex-text-light">{f.title}</div>
+                    <small className="nex-text-muted">{f.text}</small>
                   </div>
-                  <Card.Title className="fw-bold mb-1 fs-16 text-brand-dark">{cat.name}</Card.Title>
-                  <Card.Text className="mb-0 fs-13 fw-medium text-brand-primary">{cat.items}</Card.Text>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-
-      {/* Featured Products */}
-      <Container fluid className="mt-5 pt-5 px-container">
-        <div className="d-flex justify-content-between align-items-end mb-4 pb-2 flex-wrap gap-3">
-          <div>
-            <h2 className="fw-bold fs-32 text-brand-dark mb-2 tracking-tight">Featured Products</h2>
-            <p className="mb-0 fs-16 text-brand-muted">Handpicked premium items just for you</p>
-          </div>
-          <Link to="/products" className="text-decoration-none fw-bold fs-15 text-brand-primary d-flex align-items-center gap-2 hover-opacity transition-color">
-            View all products <span className="fs-18">→</span>
-          </Link>
-        </div>
-        <Row className="g-4 row-cols-1 row-cols-sm-2 row-cols-lg-4">
-          {[
-            { name: 'Sony WH-1000XM5', price: 349.00, originalPrice: 399.00, rating: 5, image: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&q=80', badge: 'Best Seller' },
-            { name: 'Nike Air Max Pro', price: 129.00, originalPrice: null, rating: 4, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80', badge: 'New' },
-            { name: 'Modern Desk Lamp', price: 49.00, originalPrice: 65.00, rating: 4, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=600&q=80', badge: 'Sale' },
-            { name: 'Ergonomic Laptop Stand', price: 89.00, originalPrice: null, rating: 5, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=600&q=80', badge: null }
-          ].map((prod, idx) => (
-            <Col key={idx}>
-              <Card className="h-100 border-0 shadow-sm transition-all hover-shadow" style={{ borderRadius: '16px', overflow: 'hidden' }}
-                onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; }}
-                onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; }}>
-                <div className="position-relative bg-white" style={{ height: '260px', padding: '20px' }}>
-                  <img src={prod.image} alt={prod.name} className="w-100 h-100 object-fit-contain mix-blend-multiply transition-transform hover-scale" style={{ transitionDuration: '0.5s' }} />
-                  {prod.badge && (
-                    <span className="position-absolute top-0 start-0 m-3 px-3 py-1 rounded-pill fs-11 fw-bold text-white shadow-sm tracking-wide" 
-                          style={{ background: prod.badge === 'Sale' ? '#EF4444' : prod.badge === 'New' ? '#3B82F6' : '#0D9488' }}>
-                      {prod.badge.toUpperCase()}
-                    </span>
-                  )}
                 </div>
-                <Card.Body className="d-flex flex-column p-4 border-top border-brand-light bg-white">
-                  <div className="d-flex gap-1 mb-2">
-                    {[1,2,3,4,5].map(star => (
-                      <span key={star} className="fs-14" style={{ color: star <= prod.rating ? '#F59E0B' : '#E2E8F0' }}>★</span>
-                    ))}
-                  </div>
-                  <Card.Title className="fw-bold mb-3 fs-16 text-brand-dark lh-16" style={{ minHeight: '40px' }}>{prod.name}</Card.Title>
-                  <div className="mt-auto d-flex justify-content-between align-items-end">
-                    <div>
-                      {prod.originalPrice && <span className="fs-13 text-brand-muted text-decoration-line-through d-block mb-1">${prod.originalPrice.toFixed(2)}</span>}
-                      <span className="fw-bold fs-20 text-brand-dark">${prod.price.toFixed(2)}</span>
-                    </div>
-                    <Button className="rounded border-0 px-3 fs-13 fw-bold btn-brand shadow-sm d-flex align-items-center justify-content-center" style={{ height: '38px' }}>
-                      + Cart
-                    </Button>
-                  </div>
-                </Card.Body>
-              </Card>
-            </Col>
-          ))}
-        </Row>
-      </Container>
-
-      {/* Newsletter */}
-      <Container fluid className="mt-5 pt-5 pb-5 px-container">
-        <div className="position-relative overflow-hidden text-center text-white bg-brand-dark shadow-lg" style={{ borderRadius: '24px', padding: '80px 20px' }}>
-          <div className="position-absolute top-0 start-0 w-100 h-100" style={{ background: 'linear-gradient(45deg, rgba(13,148,136,0.2) 0%, transparent 100%)' }}></div>
-          <div className="position-relative z-1 max-w-600 mx-auto">
-            <span className="d-inline-block px-3 py-1 mb-3 rounded-pill fs-12 fw-bold text-brand-dark bg-white shadow-sm tracking-widest">
-              STAY CONNECTED
-            </span>
-            <h2 className="fw-bold mb-3 fs-36 tracking-tight">Join our newsletter</h2>
-            <p className="mb-5 text-brand-white-70 fs-16 lh-16">
-              Subscribe to get special offers, free giveaways, and once-in-a-lifetime deals delivered straight to your inbox.
-            </p>
-            <Form className="d-flex flex-column flex-sm-row mx-auto gap-3">
-              <Form.Control 
-                type="email" 
-                placeholder="Enter your email address" 
-                className="rounded-pill border-0 text-white bg-white bg-opacity-10 px-4 h-56 fs-15 shadow-none focus-ring-brand" 
-                style={{ backdropFilter: 'blur(10px)' }}
-              />
-              <Button className="rounded-pill border-0 text-nowrap fw-bold px-5 h-56 fs-15 btn-brand shadow-lg transition-transform hover-scale">
-                Subscribe
-              </Button>
-            </Form>
-            <p className="mt-3 mb-0 fs-12 text-brand-white-50">By subscribing you agree to our Terms & Conditions and Privacy Policy.</p>
+              </div>
+            ))}
           </div>
         </div>
-      </Container>
-    </div>
+      </section>
+
+      {/* ===== Categories ===== */}
+      <section className="nex-section">
+        <div className="container">
+          <Reveal>
+            <div className="text-center mb-5">
+              <h2 className="display-5 fw-bold nex-text-light">
+                Shop by <span className="nex-gradient-text">category</span>
+              </h2>
+              <p className="lead nex-text-muted">Find exactly what you're looking for, faster.</p>
+            </div>
+          </Reveal>
+          <div className="row g-3 g-md-4">
+            {categories.slice(0, 8).map((c, i) => (
+              <div className="col-6 col-md-4 col-lg-3" key={c.id}>
+                <Reveal delay={i * 80}>
+                  <CategoryCard category={c} />
+                </Reveal>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Mega banner ===== */}
+      <section className="my-5">
+        <div className="container">
+          <Reveal>
+            <div className="nex-banner position-relative rounded-4 overflow-hidden text-white text-center"
+              style={{ minHeight: '420px', backgroundImage: 'url(https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&q=80)', backgroundSize: 'cover', backgroundPosition: 'center' }}>
+              <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.65)', zIndex: 1 }} />
+              <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse at 50% 50%, rgba(139,92,246,0.35) 0%, transparent 65%)', zIndex: 1, pointerEvents: 'none' }} />
+              <div className="position-relative d-flex flex-column justify-content-center align-items-center p-5" style={{ minHeight: '420px', zIndex: 2 }}>
+                <span className="nex-pill mb-3">MEGA SALE</span>
+                <h2 className="display-3 fw-bold mb-3 text-white">
+                  Up to <span className="display-2 nex-gradient-text">50% OFF</span> Sitewide
+                </h2>
+                <p className="lead mb-4 mx-auto" style={{ color: 'rgba(255,255,255,0.6)', maxWidth: '600px' }}>
+                  Limited-time offer ends soon. Don't miss out on our biggest sale of the year.
+                </p>
+                <Link to="/deals" className="nex-btn-primary">
+                  Shop the sale <i className="bi bi-arrow-right" />
+                </Link>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ===== Trending ===== */}
+      <section className="nex-section-alt">
+        <div className="container">
+          <div className="d-flex justify-content-between align-items-end flex-wrap gap-2 mb-5">
+            <div>
+              <Reveal>
+                <h2 className="display-5 fw-bold mb-1 nex-text-light">
+                  Trending <span className="nex-gradient-text">now</span>
+                </h2>
+                <p className="nex-text-muted mb-0">What everyone's loving this week</p>
+              </Reveal>
+            </div>
+            <Reveal delay={200}>
+              <Link to="/products" className="nex-btn-outline">
+                View all <i className="bi bi-arrow-right" />
+              </Link>
+            </Reveal>
+          </div>
+          <div className="row g-3 g-md-4">
+            {trending.slice(0, 8).map((p, i) => (
+              <div className="col-6 col-md-4 col-lg-3" key={p.id}>
+                <Reveal delay={i * 50}>
+                  <ProductCard product={p} />
+                </Reveal>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Featured picks ===== */}
+      <section className="nex-section">
+        <div className="container">
+          <Reveal>
+            <div className="text-center mb-5">
+              <h2 className="display-5 fw-bold nex-text-light">
+                Featured <span className="nex-gradient-text">picks</span>
+              </h2>
+              <p className="lead nex-text-muted">Hand-picked by our team for you.</p>
+            </div>
+          </Reveal>
+          <div className="row g-3 g-md-4">
+            {featuredProducts.slice(0, 4).map((p, i) => (
+              <div className="col-6 col-md-3" key={p.id}>
+                <Reveal delay={i * 150} duration={0.8}>
+                  <ProductCard product={p} />
+                </Reveal>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Testimonials ===== */}
+      <section className="nex-section-alt">
+        <div className="container">
+          <Reveal>
+            <div className="text-center mb-5">
+              <h2 className="display-5 fw-bold nex-text-light">
+                Loved by <span className="nex-gradient-text">thousands</span>
+              </h2>
+              <p className="lead nex-text-muted">Don't take our word for it — hear from our customers.</p>
+            </div>
+          </Reveal>
+          <div className="row g-4">
+            {testimonials.map((t, i) => (
+              <div className="col-md-6 col-lg-3" key={t.id}>
+                <Reveal delay={i * 100}>
+                  <div className="nex-testimonial-card">
+                    <Rating value={t.rating} />
+                    <p className="my-4 fst-italic nex-text-muted" style={{ lineHeight: 1.75 }}>"{t.quote}"</p>
+                    <div className="d-flex align-items-center gap-3">
+                      <img src={t.avatar} alt={t.name} className="rounded-circle" width="44" height="44"
+                        style={{ border: '2px solid rgba(139,92,246,0.35)' }} />
+                      <div>
+                        <div className="fw-bold small nex-text-light">{t.name}</div>
+                        <small className="nex-text-muted">{t.role}</small>
+                      </div>
+                    </div>
+                  </div>
+                </Reveal>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ===== Newsletter ===== */}
+      <section className="nex-section pb-5">
+        <div className="container">
+          <Reveal>
+            <div className="nex-newsletter">
+              <i className="bi bi-envelope-paper-fill nex-gradient-text d-block mb-3" style={{ fontSize: '3.2rem' }} />
+              <h2 className="display-5 fw-bold nex-text-light mb-3">
+                Get <span className="nex-gradient-text">10% off</span> your first order
+              </h2>
+              <p className="lead nex-text-muted mx-auto mb-4" style={{ maxWidth: '520px' }}>
+                Join the NexMart newsletter for exclusive deals, early access, and a welcome discount.
+              </p>
+              <form onSubmit={(e) => e.preventDefault()} className="mx-auto" style={{ maxWidth: '500px' }}>
+                <div className="nex-email-group">
+                  <span className="nex-email-icon">
+                    <i className="bi bi-envelope" />
+                  </span>
+                  <input type="email" className="nex-email-input" placeholder="you@email.com" required />
+                  <button type="submit" className="nex-email-btn">Subscribe</button>
+                </div>
+              </form>
+              <p className="small mt-3" style={{ color: 'rgba(240,244,255,0.3)' }}>We respect your privacy. Unsubscribe at any time.</p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+    </>
   );
 };
 

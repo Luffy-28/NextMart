@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Container, Button, Card, Form, Alert } from 'react-bootstrap';
 import { useDispatch } from 'react-redux';
 import { verifyOtp, resendOtp } from '../features/user/userAction';
 
@@ -9,22 +8,19 @@ const EmailVerify = () => {
   const dispatch = useDispatch();
   const location = useLocation();
   const email = location.state?.email || '';
-  
+
   const [otp, setOtp] = useState('');
   const [resendTimer, setResendTimer] = useState(60);
   const [errorMsg, setErrorMsg] = useState('');
 
-  // Redirect to login if they try to access this page without an email
   useEffect(() => {
-    if (!email) {
-      navigate('/login');
-    }
+    if (!email) navigate('/login');
   }, [email, navigate]);
 
   useEffect(() => {
     if (resendTimer > 0) {
-      const timer = setTimeout(() => setResendTimer(resendTimer - 1), 1000);
-      return () => clearTimeout(timer);
+      const t = setTimeout(() => setResendTimer(r => r - 1), 1000);
+      return () => clearTimeout(t);
     }
   }, [resendTimer]);
 
@@ -45,7 +41,6 @@ const EmailVerify = () => {
       setErrorMsg('Please enter a valid 6-digit code');
       return;
     }
-
     const data = await dispatch(verifyOtp({ email, otp }));
     if (data?.status === 'success') {
       alert('Verification successful! You can now log in.');
@@ -56,56 +51,66 @@ const EmailVerify = () => {
   };
 
   return (
-    <Container fluid className="d-flex align-items-center justify-content-center flex-grow-1 bg-brand-light min-vh-custom py-5">
-      <div className="w-100 text-center max-w-600">
-        <div className="mx-auto rounded-circle d-flex align-items-center justify-content-center mb-4 bg-brand-pale border-brand-primary" style={{ width: '100px', height: '100px', borderWidth: '2px' }}>
-          <span className="fs-36 opacity-50 grayscale-1">✉️</span>
+    <div style={{ minHeight: 'calc(100vh - 68px)', background: 'var(--nex-bg)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '48px 20px' }}>
+      <div style={{ width: '100%', maxWidth: '480px', textAlign: 'center' }}>
+        {/* Icon */}
+        <div className="mx-auto mb-5 d-flex align-items-center justify-content-center rounded-circle nex-icon-grad"
+          style={{ width: 80, height: 80, fontSize: '1.8rem' }}>
+          <i className="bi bi-envelope-check text-white" />
         </div>
 
-        <h2 className="fw-bold mb-3 fs-28 text-brand-dark">Check your inbox</h2>
-        <p className="mb-2 fs-14 text-brand-muted lh-16">
-          We sent a 6-digit verification code to <strong className="text-brand-dark">{email}</strong><br/>
-          Please enter it below to activate your NexMart account.
+        <h2 className="nex-text-light fw-bold mb-3" style={{ fontSize: '1.9rem' }}>Check your inbox</h2>
+        <p className="nex-text-muted mb-2" style={{ lineHeight: 1.7 }}>
+          We sent a 6-digit verification code to
         </p>
+        <p className="nex-gradient-text fw-bold mb-5" style={{ fontSize: '0.95rem' }}>{email}</p>
 
-        <Card className="mx-auto my-4 border shadow-sm max-w-480 border-brand-gray">
-          <Card.Body className="p-4">
-            {errorMsg && <Alert variant="danger" className="py-2 fs-13">{errorMsg}</Alert>}
-            
-            <Form onSubmit={handleVerify}>
-              <Form.Group className="mb-4">
-                <Form.Control 
-                  type="text" 
-                  maxLength="6"
-                  placeholder="Enter 6-digit code"
-                  className="text-center fs-24 tracking-widest fw-bold h-60"
-                  value={otp}
-                  onChange={(e) => setOtp(e.target.value.replace(/[^0-9]/g, ''))}
-                  required
-                />
-              </Form.Group>
+        <div className="nex-glass-card" style={{ padding: '32px' }}>
+          {errorMsg && (
+            <div className="mb-4 px-4 py-3 rounded" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)', color: '#f87171', fontSize: '0.88rem' }}>
+              {errorMsg}
+            </div>
+          )}
 
-              <Button type="submit" variant="primary" className="w-100 rounded-pill border-0 h-48 fs-14 fw-bold btn-brand mb-3">
-                Verify Account
-              </Button>
-            </Form>
+          <form onSubmit={handleVerify} className="d-flex flex-column gap-4">
+            <div>
+              <label className="nex-form-label">Verification Code</label>
+              <input
+                type="text" maxLength={6} placeholder="000000" value={otp}
+                onChange={e => { setOtp(e.target.value.replace(/[^0-9]/g, '')); setErrorMsg(''); }}
+                className="nex-input"
+                style={{ textAlign: 'center', fontSize: '1.6rem', fontWeight: 700, letterSpacing: '0.4em', padding: '14px' }}
+                required
+              />
+            </div>
 
-            <Button 
-              variant="outline-secondary"
-              className={`w-100 rounded-pill h-40 fs-13 ${resendTimer > 0 ? 'bg-secondary text-white border-0' : ''}`}
+            <button type="submit" className="nex-btn-primary w-100 justify-content-center" style={{ padding: '13px' }}>
+              Verify Account <i className="bi bi-check-lg" />
+            </button>
+          </form>
+
+          <div className="mt-4">
+            <button
               onClick={handleResend}
               disabled={resendTimer > 0}
+              style={{
+                width: '100%', padding: '11px', background: 'rgba(255,255,255,0.04)',
+                border: '1px solid var(--nex-border)', borderRadius: '10px',
+                color: resendTimer > 0 ? 'var(--nex-text-muted)' : 'var(--nex-text)',
+                fontSize: '0.88rem', fontWeight: 500, cursor: resendTimer > 0 ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+              }}
             >
               {resendTimer > 0 ? `Resend available in ${resendTimer}s` : 'Resend Code'}
-            </Button>
-          </Card.Body>
-        </Card>
+            </button>
+          </div>
+        </div>
 
-        <Link to="/login" className="d-inline-block mt-2 text-decoration-none fs-13 text-brand-muted hover-text-dark transition-color">
+        <Link to="/login" className="nex-text-muted text-decoration-none d-inline-block mt-4" style={{ fontSize: '0.88rem' }}>
           ← Back to Sign In
         </Link>
       </div>
-    </Container>
+    </div>
   );
 };
 

@@ -1,106 +1,215 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Navbar, Container, Nav, Button, Form, InputGroup, Dropdown } from 'react-bootstrap';
+import { Navbar, Container, Nav, Dropdown } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
+import {
+  FiSun,
+  FiMoon,
+  FiShoppingBag,
+  FiChevronDown,
+  FiUser,
+  FiPackage,
+  FiLogOut,
+  FiSearch,
+} from 'react-icons/fi';
 import { setUser } from '../../features/user/userSlice';
+import { toggleTheme } from '../../features/theme/themeSlice';
 
 const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
+
   const { user } = useSelector((state) => state.userStore);
-  
-  const isAuthPage = location.pathname === '/login' || location.pathname === '/signup' || location.pathname === '/verify-email';
+  const { isDark } = useSelector((state) => state.themeStore);
+
+  const isAuthPage =
+    location.pathname === '/login' ||
+    location.pathname === '/signup' ||
+    location.pathname === '/verify-email';
 
   const handleLogout = () => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
-    dispatch(setUser({})); // Clear user in Redux
+    dispatch(setUser({}));
     navigate('/login');
   };
 
+  const navLinks = [
+    { to: '/', label: 'Home' },
+    { to: '/products', label: 'Shop' },
+    { to: '/categories', label: 'Categories' },
+    { to: '/deals', label: 'Deals' },
+  ];
+
   return (
-    <Navbar expand="lg" className="min-h-72 border-bottom border-brand-light bg-white py-2" sticky="top">
-      <Container fluid className="w-100 px-container">
-        <Navbar.Brand as={Link} to="/" className="fw-bold m-0 fs-24 text-brand-primary">
+    <Navbar expand="lg" sticky="top" className="nex-navbar" collapseOnSelect>
+      <Container fluid className="px-4 px-lg-5">
+
+        <Navbar.Brand as={Link} to="/" className="nex-nav-logo">
           NexMart
         </Navbar.Brand>
-        
-        <div className="d-flex align-items-center ms-auto order-lg-last">
+
+        <div className="d-flex align-items-center ms-auto order-lg-last gap-2">
+
+          <button
+            onClick={() => dispatch(toggleTheme())}
+            className="nex-nav-icon-btn"
+            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            type="button"
+            style={{
+              border: 'none',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {isDark ? (
+              <FiSun size={20} color="#fbbf24" />
+            ) : (
+              <FiMoon size={20} color="#8B5CF6" />
+            )}
+          </button>
+
           {!isAuthPage && (
-            <Link to="/cart" className="position-relative d-flex align-items-center me-4 fs-20 text-brand-dark text-decoration-none">
-              🛒
-              <span className="position-absolute d-flex align-items-center justify-content-center fw-bold bg-brand-primary text-white fs-10 rounded-circle" style={{ top: '-6px', right: '-8px', width: '18px', height: '18px' }}>
-                3
-              </span>
+            <Link
+              to="/cart"
+              className="nex-nav-icon-btn position-relative me-1"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                textDecoration: 'none',
+              }}
+            >
+              <FiShoppingBag size={21} />
+              <span className="nex-nav-badge">3</span>
             </Link>
           )}
 
           {isAuthPage ? (
             location.pathname === '/login' ? (
-              <Button as={Link} to="/signup" variant="outline-primary" className="rounded-pill px-4 h-40 fs-14 btn-outline-brand">
+              <Link to="/signup" className="nex-btn-primary nex-btn-sm">
                 Create Account
-              </Button>
+              </Link>
             ) : (
-              <Button as={Link} to="/login" variant="outline-primary" className="rounded-pill px-4 h-40 fs-14 btn-outline-brand">
+              <Link to="/login" className="nex-btn-outline nex-btn-sm">
                 Sign In
-              </Button>
+              </Link>
             )
+          ) : user && user.email ? (
+            <Dropdown align="end">
+              <Dropdown.Toggle as="div" className="nex-avatar-toggle">
+                <div className="nex-avatar-circle">
+                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                </div>
+
+                <span className="d-none d-sm-block small fw-medium nex-text-light">
+                  {user.name?.split(' ')[0] || 'User'}
+                </span>
+
+                <FiChevronDown size={14} className="nex-text-muted" />
+              </Dropdown.Toggle>
+
+              <Dropdown.Menu className="nex-dropdown mt-2">
+                <div className="px-3 py-2">
+                  <p className="mb-0 fw-semibold small nex-text-light">
+                    {user.name}
+                  </p>
+                  <p className="mb-0 small nex-text-muted text-truncate">
+                    {user.email}
+                  </p>
+                </div>
+
+                <Dropdown.Divider className="nex-dropdown-divider" />
+
+                <Dropdown.Item
+                  as={Link}
+                  to="/profile"
+                  className="nex-dropdown-item"
+                >
+                  <FiUser size={16} className="me-2" />
+                  My Profile
+                </Dropdown.Item>
+
+                <Dropdown.Item
+                  as={Link}
+                  to="/orders"
+                  className="nex-dropdown-item"
+                >
+                  <FiPackage size={16} className="me-2" />
+                  My Orders
+                </Dropdown.Item>
+
+                <Dropdown.Divider className="nex-dropdown-divider" />
+
+                <Dropdown.Item
+                  onClick={handleLogout}
+                  className="nex-dropdown-item nex-dropdown-danger"
+                >
+                  <FiLogOut size={16} className="me-2" />
+                  Logout
+                </Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
           ) : (
-            user && user.email ? (
-              <Dropdown align="end">
-                <Dropdown.Toggle variant="light" className="rounded-pill d-flex align-items-center gap-2 border bg-transparent h-40">
-                  <div className="bg-brand-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style={{ width: '28px', height: '28px', fontSize: '12px' }}>
-                    {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
-                  </div>
-                  <span className="fs-13 fw-medium text-brand-dark d-none d-sm-block">{user.name?.split(' ')[0] || 'User'}</span>
-                </Dropdown.Toggle>
-                <Dropdown.Menu className="shadow-sm border-0 mt-2" style={{ borderRadius: '12px', minWidth: '200px' }}>
-                  <div className="px-3 py-2 border-bottom mb-2">
-                    <p className="mb-0 fw-semibold fs-14 text-brand-dark">{user.name}</p>
-                    <p className="mb-0 fs-12 text-brand-muted text-truncate">{user.email}</p>
-                  </div>
-                  <Dropdown.Item as={Link} to="/profile" className="fs-13 py-2 text-brand-dark">👤 My Profile</Dropdown.Item>
-                  <Dropdown.Item as={Link} to="/orders" className="fs-13 py-2 text-brand-dark">📦 My Orders</Dropdown.Item>
-                  <Dropdown.Divider />
-                  <Dropdown.Item onClick={handleLogout} className="fs-13 py-2 text-danger">🚪 Logout</Dropdown.Item>
-                </Dropdown.Menu>
-              </Dropdown>
-            ) : (
-              <div className="d-flex gap-2">
-                <Button as={Link} to="/login" variant="light" className="rounded-pill px-3 d-none d-sm-block h-40 fs-14 bg-transparent border-0 text-brand-dark fw-medium">
-                  Sign In
-                </Button>
-                <Button as={Link} to="/signup" className="rounded-pill px-3 h-40 fs-14 btn-brand">
-                  Sign Up
-                </Button>
-              </div>
-            )
+            <div className="d-flex gap-2">
+              <Link
+                to="/login"
+                className="nex-btn-outline nex-btn-sm d-none d-sm-flex"
+              >
+                Sign In
+              </Link>
+
+              <Link to="/signup" className="nex-btn-primary nex-btn-sm">
+                Sign Up
+              </Link>
+            </div>
           )}
         </div>
 
         {!isAuthPage && (
           <>
-            <Navbar.Toggle aria-controls="basic-navbar-nav" className="ms-3 border-0 px-1" />
-            <Navbar.Collapse id="basic-navbar-nav">
-              <Nav className="mx-auto d-flex align-items-lg-center gap-3 gap-lg-4 mt-4 mt-lg-0 px-2 px-lg-0">
-                <Nav.Link as={Link} to="/" className="text-brand-primary fw-medium fs-15">Home</Nav.Link>
-                <Nav.Link as={Link} to="/products" className="text-brand-muted fw-medium fs-15">Shop</Nav.Link>
-                <Nav.Link as={Link} to="/categories" className="text-brand-muted fw-medium fs-15">Categories</Nav.Link>
-                <Nav.Link as={Link} to="/deals" className="text-brand-muted fw-medium fs-15">Deals</Nav.Link>
-                {user && user.email && <Nav.Link as={Link} to="/orders" className="text-brand-muted fw-medium fs-15 d-lg-none">My Orders</Nav.Link>}
+            <Navbar.Toggle
+              aria-controls="nex-navbar-nav"
+              className="nex-nav-toggler ms-3"
+            />
+
+            <Navbar.Collapse id="nex-navbar-nav">
+              <Nav className="mx-auto d-flex align-items-lg-center mt-4 mt-lg-0">
+                {navLinks.map(({ to, label }) => (
+                  <Nav.Link
+                    key={to}
+                    as={Link}
+                    to={to}
+                    className={`nex-nav-link ${
+                      location.pathname === to ? 'active' : ''
+                    }`}
+                  >
+                    {label}
+                  </Nav.Link>
+                ))}
+
+                {user && user.email && (
+                  <Nav.Link
+                    as={Link}
+                    to="/orders"
+                    className="nex-nav-link d-lg-none"
+                  >
+                    My Orders
+                  </Nav.Link>
+                )}
               </Nav>
 
-              <Form className="d-flex align-items-center mx-lg-3 mt-4 mt-lg-0 mb-2 mb-lg-0 search-form-wrapper" style={{ minWidth: '300px' }}>
-                <InputGroup>
-                  <InputGroup.Text className="bg-brand-gray border-0 text-brand-light ps-3">⚲</InputGroup.Text>
-                  <Form.Control
-                    type="text"
-                    placeholder="Search products..."
-                    className="bg-brand-gray border-0 h-44 fs-14 box-shadow-none"
-                  />
-                </InputGroup>
-              </Form>
+              <div className="nex-search-wrap mx-lg-3 mt-4 mt-lg-0 mb-2 mb-lg-0">
+                <FiSearch size={17} className="nex-search-icon" />
+
+                <input
+                  type="text"
+                  placeholder="Search products..."
+                  className="nex-search-field"
+                />
+              </div>
             </Navbar.Collapse>
           </>
         )}

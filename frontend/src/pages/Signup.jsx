@@ -1,26 +1,18 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Container, Row, Col, Form, Button } from 'react-bootstrap';
 import { useForm } from '../hooks/useForm';
-import {useDispatch} from "react-redux";
-import { registerUser, verifyGoogleLoginAction } from '../features/user/userAction';
+import { useDispatch } from 'react-redux';
+import { registerUser } from '../features/user/userAction';
 
-const initialState ={
-  name:"",
-    email: '',
-    password: '',
-    confirmPassword: '',
-}
+const initialState = { name: '', email: '', password: '', confirmPassword: '' };
+
 const Signup = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const {formData, setFormData, handleChange: handleFormChange } = useForm(initialState);
-
-  const [passwordStrength, setPasswordStrength] = useState({
-    score: 0,
-    label: 'Weak',
-    variant: 'danger'
-  });
+  const { formData, setFormData, handleChange: handleFormChange } = useForm(initialState);
+  const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: 'Weak', color: '#EF4444' });
+  const [showPw, setShowPw] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const calculatePasswordStrength = (password) => {
     let score = 0;
@@ -29,189 +21,158 @@ const Signup = () => {
     if (/[a-z]/.test(password) && /[A-Z]/.test(password)) score++;
     if (/\d/.test(password)) score++;
     if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) score++;
-
     const strengths = [
       { score: 0, label: 'Weak', color: '#EF4444' },
       { score: 1, label: 'Weak', color: '#EF4444' },
       { score: 2, label: 'Fair', color: '#F59E0B' },
       { score: 3, label: 'Good', color: '#3B82F6' },
       { score: 4, label: 'Strong', color: '#10B981' },
-      { score: 5, label: 'Very Strong', color: '#10B981' }
+      { score: 5, label: 'Very Strong', color: '#10B981' },
     ];
     return strengths[score];
   };
 
   const handleChange = (e) => {
-    // 1. Let your custom hook update the state
     handleFormChange(e);
-
-    // 2. Also run your specific password strength calculation
-    const { name, value } = e.target;
-    if (name === 'password') {
-      setPasswordStrength(calculatePasswordStrength(value));
+    if (e.target.name === 'password') {
+      setPasswordStrength(calculatePasswordStrength(e.target.value));
     }
   };
 
-  const handleSubmit = async(e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (formData.password !== formData.confirmPassword) {
       alert('Passwords do not match!');
       return;
     }
     try {
-      // 1. MUST wrap Redux actions in dispatch()
       const data = await dispatch(registerUser(formData));
-      console.log("Response Data:" , data)
-
-      if(data?.status === "success"){
-        alert("Registration successful. please verify your account")
-        // 2. Removed dispatch(setUser()) because registerUser action already does that for you!
-        setFormData(initialState)
-        navigate("/verify-email", { state: { email: formData.email } });
+      if (data?.status === 'success') {
+        alert('Registration successful. Please verify your account.');
+        setFormData(initialState);
+        navigate('/verify-email', { state: { email: formData.email } });
       }
     } catch (error) {
-    console.log("ERROR REGISTER CATCH:" , error.message)
-    alert("Registration failed:" + error.message)  
+      alert('Registration failed: ' + error.message);
     }
   };
 
+  const perks = [
+    { icon: 'bi-bag-heart', text: 'Exclusive member-only deals' },
+    { icon: 'bi-truck', text: 'Free delivery on orders over $50' },
+    { icon: 'bi-arrow-repeat', text: '30-day hassle-free returns' },
+    { icon: 'bi-shield-check', text: 'Secure, encrypted checkout' },
+  ];
+
   return (
-    <Container fluid className="p-0 d-flex flex-column flex-grow-1 bg-brand-light min-vh-custom">
-      <Row className="g-0 flex-grow-1 m-0">
-        {/* Left Panel */}
-        <Col lg={5} className="d-flex flex-column justify-content-center p-5 text-white bg-brand-dark">
-          <div className="mx-auto max-w-400">
-            <h1 className="fw-bold mb-3 text-center fs-28">Join NexMart</h1>
-            <p className="text-center mb-5 text-brand-white-50 fs-13 lh-16">
-              Free delivery • Exclusive deals<br />
-              Easy returns • Secure payments
-            </p>
-            
-            <ul className="list-unstyled mb-0 d-flex flex-column gap-4">
-              <li className="d-flex align-items-center gap-3 text-brand-white-50 fs-13">
-                <span className="fs-5">⚡</span> 30-day free returns
-              </li>
-              <li className="d-flex align-items-center gap-3 text-brand-white-50 fs-13">
-                <span className="fs-5">🔒</span> Secure checkout
-              </li>
-              <li className="d-flex align-items-center gap-3 text-brand-white-50 fs-13">
-                <span className="fs-5">📦</span> Fast AU delivery
-              </li>
-              <li className="d-flex align-items-center gap-3 text-brand-white-50 fs-13">
-                <span className="fs-5">⭐</span> Loyalty rewards
-              </li>
-            </ul>
+    <div className="nex-auth-wrap">
+      {/* Left panel */}
+      <div className="nex-auth-left">
+        <div className="nex-orb" style={{ width: '280px', height: '280px', background: '#06B6D4', top: '-8%', left: '-12%', opacity: 0.15 }} />
+        <div className="nex-orb" style={{ width: '220px', height: '220px', background: '#8B5CF6', bottom: '-8%', right: '-10%', opacity: 0.13 }} />
+        <div className="nex-hero-grid" style={{ opacity: 0.5 }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div className="mb-5">
+            <span className="nex-gradient-text" style={{ fontSize: '1.8rem', fontWeight: 800, letterSpacing: '-0.03em' }}>NexMart</span>
           </div>
-        </Col>
 
-        {/* Right Panel - Signup Form */}
-        <Col lg={7} className="d-flex align-items-center justify-content-center p-5">
-          <div className="w-100 max-w-600">
-            <h2 className="fw-bold mb-2 text-center fs-24">Create Account</h2>
-            <p className="text-muted mb-4 text-center fs-13">
-              Already have an account? <Link to="/login" className="text-decoration-none fw-medium text-brand-primary">Sign in →</Link>
-            </p>
+          <h2 className="nex-text-light fw-bold mb-3" style={{ fontSize: '2.2rem', lineHeight: 1.2 }}>
+            Join the<br />community
+          </h2>
+          <p className="nex-text-muted mb-5" style={{ lineHeight: 1.7 }}>
+            Create your free account and start<br />shopping premium products today.
+          </p>
 
-            <Form onSubmit={handleSubmit}>
-              <Row className="g-3 mb-3">
-                <Col md={6}>
-                  <Form.Group controlId="name">
-                    <Form.Label className="fs-11 fw-medium text-brand-muted">Name</Form.Label>
-                    <Form.Control 
-                      type="text" 
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      placeholder="Please enter yourFull Name" 
-                      className="h-40 fs-13"
-                      required
-                    />
-                  </Form.Group>
-                </Col>
-              </Row>
+          <div className="d-flex flex-column gap-4">
+            {perks.map(({ icon, text }) => (
+              <div key={text} className="d-flex align-items-center gap-3">
+                <div className="d-flex align-items-center justify-content-center rounded-circle nex-icon-grad flex-shrink-0" style={{ width: 36, height: 36 }}>
+                  <i className={`bi ${icon} text-white`} style={{ fontSize: '0.85rem' }} />
+                </div>
+                <span className="nex-text-muted" style={{ fontSize: '0.9rem' }}>{text}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
-              <Form.Group className="mb-3" controlId="email">
-                <Form.Label className="fs-11 fw-medium text-brand-muted">Email Address</Form.Label>
-                <Form.Control 
-                  type="email" 
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="you@example.com" 
-                  className="h-40 fs-13 border-brand-primary border-2"
-                  required
+      {/* Right panel */}
+      <div className="nex-auth-right">
+        <div className="nex-auth-form-wide">
+          <h2 className="nex-text-light fw-bold mb-1" style={{ fontSize: '1.8rem' }}>Create Account</h2>
+          <p className="nex-text-muted mb-5" style={{ fontSize: '0.9rem' }}>
+            Already have an account?{' '}
+            <Link to="/login" className="nex-gradient-text fw-semibold text-decoration-none">Sign in →</Link>
+          </p>
+
+          <form onSubmit={handleSubmit} className="d-flex flex-column gap-4">
+            <div>
+              <label className="nex-form-label">Full Name</label>
+              <input
+                type="text" name="name" value={formData.name} onChange={handleChange}
+                placeholder="Your full name" className="nex-input" required
+              />
+            </div>
+
+            <div>
+              <label className="nex-form-label">Email Address</label>
+              <input
+                type="email" name="email" value={formData.email} onChange={handleChange}
+                placeholder="you@example.com" className="nex-input" required
+              />
+            </div>
+
+            <div>
+              <label className="nex-form-label">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showPw ? 'text' : 'password'} name="password" value={formData.password}
+                  onChange={handleChange} placeholder="Min 8 characters" className="nex-input" required
+                  style={{ paddingRight: '42px' }}
                 />
-              </Form.Group>
-
-              <Form.Group className="mb-3" controlId="password">
-                <Form.Label className="fs-11 fw-medium text-brand-muted">Password</Form.Label>
-                <Form.Control 
-                  type="password" 
-                  name="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="••••••••" 
-                  className="h-40 fs-13"
-                  required
-                />
-                {formData.password && (
-                  <div className="mt-2">
-                    <div className="d-flex gap-1 mb-1" style={{ height: '4px' }}>
-                      {[1, 2, 3, 4].map(num => (
-                        <div 
-                          key={num} 
-                          className="flex-grow-1 rounded-pill" 
-                          style={{
-                            backgroundColor: passwordStrength.score >= num 
-                              ? passwordStrength.color 
-                              : (passwordStrength.score > 0 && num === 1 ? passwordStrength.color : '#E2E8F0'),
-                            transition: 'all 0.3s ease'
-                          }}
-                        ></div>
-                      ))}
-                    </div>
-                    <span className="fs-10 fw-medium" style={{ color: passwordStrength.color }}>
-                      Password strength: {passwordStrength.label}
-                    </span>
+                <button type="button" onClick={() => setShowPw(v => !v)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--nex-text-muted)', cursor: 'pointer', fontSize: '1rem' }}>
+                  <i className={`bi ${showPw ? 'bi-eye-slash' : 'bi-eye'}`} />
+                </button>
+              </div>
+              {formData.password && (
+                <div className="mt-2">
+                  <div className="d-flex gap-1 mb-1" style={{ height: '3px' }}>
+                    {[1, 2, 3, 4].map(n => (
+                      <div key={n} className="flex-grow-1 rounded-pill"
+                        style={{ background: passwordStrength.score >= n ? passwordStrength.color : 'rgba(255,255,255,0.1)', transition: 'all 0.3s' }} />
+                    ))}
                   </div>
-                )}
-              </Form.Group>
+                  <span style={{ fontSize: '0.72rem', color: passwordStrength.color, fontWeight: 600 }}>
+                    {passwordStrength.label}
+                  </span>
+                </div>
+              )}
+            </div>
 
-              <Form.Group className="mb-4" controlId="confirmPassword">
-                <Form.Label className="fs-11 fw-medium text-brand-muted">Confirm Password</Form.Label>
-                <Form.Control 
-                  type="password" 
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  placeholder="••••••••" 
-                  className="h-40 fs-13"
-                  required
+            <div>
+              <label className="nex-form-label">Confirm Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type={showConfirm ? 'text' : 'password'} name="confirmPassword" value={formData.confirmPassword}
+                  onChange={handleChange} placeholder="••••••••••••" className="nex-input" required
+                  style={{ paddingRight: '42px' }}
                 />
-              </Form.Group>
+                <button type="button" onClick={() => setShowConfirm(v => !v)}
+                  style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--nex-text-muted)', cursor: 'pointer', fontSize: '1rem' }}>
+                  <i className={`bi ${showConfirm ? 'bi-eye-slash' : 'bi-eye'}`} />
+                </button>
+              </div>
+            </div>
 
-              {/* <Form.Group className="mb-4" controlId="agreeToTerms">
-                <Form.Check 
-                  type="checkbox"
-                  name="agreeToTerms"
-                  checked={formData.agreeToTerms}
-                  onChange={handleChange}
-                  label={
-                    <span className="fs-12 text-brand-muted">
-                      I agree to NexMart's <Link to="/terms" className="text-decoration-none text-brand-primary">Terms of Service and Privacy Policy</Link>
-                    </span>
-                  }
-                />
-              </Form.Group> */}
-
-              <Button type="submit" className="w-100 rounded-pill border-0 h-44 fs-13 fw-medium btn-brand">
-                Create Account →
-              </Button>
-            </Form>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+            <button type="submit" className="nex-btn-primary w-100 justify-content-center" style={{ padding: '13px' }}>
+              Create Account <i className="bi bi-arrow-right" />
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
   );
 };
 

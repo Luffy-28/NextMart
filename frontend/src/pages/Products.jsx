@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { Container, Row, Col, Button, Card, Form, Collapse } from 'react-bootstrap';
+import { Collapse } from 'react-bootstrap';
 
 const PRODUCTS = [
   { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, originalPrice: 449, rating: 5, reviews: 128, category: 'Electronics', subcategory: 'Audio', badge: 'Best Seller', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
@@ -21,13 +21,93 @@ const CATEGORIES = [
   { name: 'Beauty', subcategories: ['Skincare', 'Makeup', 'Haircare'] },
 ];
 
+const BADGE_COLOR = { 'Best Seller': '#8B5CF6', 'Sale': '#EF4444', 'New': '#06B6D4' };
+
 const StarRating = ({ rating, size = 12 }) => (
-  <div className="d-flex gap-1 align-items-center">
+  <span style={{ fontSize: size, letterSpacing: 1 }}>
     {[1, 2, 3, 4, 5].map(s => (
-      <span key={s} style={{ fontSize: size, color: s <= rating ? '#F59E0B' : '#E2E8F0', lineHeight: 1 }}>★</span>
+      <span key={s} style={{ color: s <= rating ? '#F59E0B' : 'rgba(255,255,255,0.12)' }}>★</span>
     ))}
-  </div>
+  </span>
 );
+
+const ProductCard = ({ product, added, onAdd }) => {
+  const cardRef = useRef(null);
+  const glowRef = useRef(null);
+
+  const onMouseMove = useCallback((e) => {
+    const card = cardRef.current;
+    if (!card) return;
+    const r = card.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const y = e.clientY - r.top;
+    const cx = r.width / 2;
+    const cy = r.height / 2;
+    card.style.transform = `perspective(900px) rotateX(${((y - cy) / cy) * -10}deg) rotateY(${((x - cx) / cx) * 10}deg) scale3d(1.02,1.02,1.02)`;
+    if (glowRef.current) {
+      glowRef.current.style.background = `radial-gradient(circle at ${x}px ${y}px, rgba(139,92,246,0.15) 0%, transparent 65%)`;
+    }
+  }, []);
+
+  const onMouseLeave = useCallback(() => {
+    if (cardRef.current) cardRef.current.style.transform = '';
+    if (glowRef.current) glowRef.current.style.background = 'transparent';
+  }, []);
+
+  return (
+    <div ref={cardRef} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}
+      className="nex-glass-card h-100 d-flex flex-column overflow-hidden"
+      style={{ transition: 'transform 0.15s ease', position: 'relative' }}>
+      <div ref={glowRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, borderRadius: 'inherit', transition: 'background 0.2s' }} />
+
+      <div style={{ position: 'relative', height: 220, overflow: 'hidden', flexShrink: 0 }}>
+        <img src={product.image} alt={product.name}
+          style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
+          onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
+          onMouseLeave={e => e.currentTarget.style.transform = ''} />
+        {product.badge && (
+          <span className="position-absolute" style={{ top: 12, left: 12, background: BADGE_COLOR[product.badge], color: 'white', fontSize: '0.68rem', fontWeight: 700, padding: '3px 10px', borderRadius: 20, letterSpacing: '0.05em' }}>
+            {product.badge.toUpperCase()}
+          </span>
+        )}
+        <Link to={`/products/${product.id}`}
+          className="position-absolute d-flex align-items-center justify-content-center"
+          style={{ top: 10, right: 10, width: 34, height: 34, background: 'rgba(7,7,15,0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', color: 'rgba(240,244,255,0.7)', textDecoration: 'none', backdropFilter: 'blur(8px)', fontSize: '0.85rem' }}>
+          <i className="bi bi-eye" />
+        </Link>
+      </div>
+
+      <div className="d-flex flex-column flex-grow-1 p-3" style={{ position: 'relative', zIndex: 1 }}>
+        <div className="d-flex justify-content-between align-items-center mb-1">
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{product.subcategory}</span>
+          <div className="d-flex align-items-center gap-1">
+            <StarRating rating={product.rating} />
+            <span style={{ fontSize: '0.7rem', color: 'var(--nex-text-muted)' }}>({product.reviews})</span>
+          </div>
+        </div>
+
+        <Link to={`/products/${product.id}`} className="text-decoration-none flex-grow-1">
+          <p className="nex-text-light fw-semibold mb-3" style={{ fontSize: '0.9rem', lineHeight: 1.4, minHeight: 40 }}>{product.name}</p>
+        </Link>
+
+        <div className="d-flex align-items-center justify-content-between mt-auto pt-2" style={{ borderTop: '1px solid var(--nex-border)' }}>
+          <div>
+            <span className="nex-text-light fw-bold" style={{ fontSize: '1.15rem' }}>${product.price}</span>
+            {product.originalPrice && (
+              <span className="nex-text-muted ms-2 text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${product.originalPrice}</span>
+            )}
+          </div>
+          <button
+            onClick={() => onAdd(product.id)}
+            className={added ? 'nex-btn-primary' : 'nex-btn-outline'}
+            style={{ padding: '7px 14px', fontSize: '0.8rem' }}>
+            {added ? <><i className="bi bi-check-lg me-1" />Added</> : <><i className="bi bi-bag-plus me-1" />Cart</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const Products = () => {
   const [searchParams] = useSearchParams();
@@ -36,7 +116,7 @@ const Products = () => {
 
   const [selectedCategory, setSelectedCategory] = useState(initCategory);
   const [selectedSubcategory, setSelectedSubcategory] = useState(initSubcategory);
-  const [openCategories, setOpenCategories] = useState({ 'All': true, [initCategory]: true });
+  const [openCategories, setOpenCategories] = useState({ All: true, [initCategory]: true });
   const [priceRange, setPriceRange] = useState([0, 500]);
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState('grid');
@@ -46,27 +126,20 @@ const Products = () => {
   useEffect(() => {
     const cat = searchParams.get('category');
     const subcat = searchParams.get('subcategory');
-    if (cat) {
-      setSelectedCategory(cat);
-      setOpenCategories(prev => ({ ...prev, [cat]: true }));
-    }
+    if (cat) { setSelectedCategory(cat); setOpenCategories(p => ({ ...p, [cat]: true })); }
     if (subcat) setSelectedSubcategory(subcat);
   }, [searchParams]);
 
   const handleCategoryToggle = (catName) => {
-    if (catName === 'All') {
-      setSelectedCategory('All');
-      setSelectedSubcategory('All');
-      return;
-    }
-    setOpenCategories(prev => ({ ...prev, [catName]: !prev[catName] }));
+    if (catName === 'All') { setSelectedCategory('All'); setSelectedSubcategory('All'); return; }
+    setOpenCategories(p => ({ ...p, [catName]: !p[catName] }));
     setSelectedCategory(catName);
     setSelectedSubcategory('All');
   };
 
   const handleAddToCart = (id) => {
-    setAddedToCart(prev => ({ ...prev, [id]: true }));
-    setTimeout(() => setAddedToCart(prev => ({ ...prev, [id]: false })), 1500);
+    setAddedToCart(p => ({ ...p, [id]: true }));
+    setTimeout(() => setAddedToCart(p => ({ ...p, [id]: false })), 1500);
   };
 
   const filtered = PRODUCTS
@@ -81,287 +154,199 @@ const Products = () => {
       return 0;
     });
 
-  const activeBadgeColor = { 'Best Seller': '#0D9488', 'Sale': '#EF4444', 'New': '#3B82F6' };
-
   return (
-    <div className="bg-brand-light pb-5" style={{ minHeight: '100vh' }}>
-      {/* Page Header */}
-      <div className="bg-brand-dark text-white py-5">
-        <Container fluid className="px-container">
+    <div style={{ background: 'var(--nex-bg)', minHeight: '100vh' }}>
+      {/* Page hero */}
+      <div className="nex-page-hero">
+        <div className="nex-orb" style={{ width: 300, height: 300, background: '#8B5CF6', top: '-60%', right: '-5%', opacity: 0.1 }} />
+        <div className="container-fluid px-4 px-lg-5 position-relative">
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
-              <h1 className="fw-bold mb-2 fs-36">Shop All Products</h1>
-              <p className="mb-0 fs-15 text-brand-white-70">
-                <Link to="/" className="text-brand-white-50 text-decoration-none hover-text-dark transition-color">Home</Link>
-                <span className="mx-2 opacity-50">/</span>
-                <span>Shop</span>
+              <p className="nex-label mb-2">NexMart Shop</p>
+              <h1 className="nex-text-light fw-bold mb-2" style={{ fontSize: '2rem' }}>All Products</h1>
+              <p className="nex-breadcrumb mb-0">
+                <Link to="/">Home</Link><span className="nex-breadcrumb-sep">›</span>Shop
               </p>
             </div>
-            <div className="d-flex align-items-center gap-3">
-              <span className="fs-14 fw-medium text-brand-white-70 px-3 py-2 rounded-pill bg-white bg-opacity-10">
-                {filtered.length} products found
-              </span>
+            <div className="nex-glass-card px-4 py-2">
+              <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{filtered.length} products</span>
             </div>
           </div>
-        </Container>
+        </div>
       </div>
 
-      <Container fluid className="px-container mt-5">
-        <Row className="g-5">
-          {/* Sidebar Filters */}
-          <Col lg={3} xl={2}>
-            <div className="bg-white rounded shadow-sm p-4" style={{ borderRadius: '16px', position: 'sticky', top: '90px' }}>
-              <h6 className="fw-bold fs-15 text-brand-dark mb-4">Filters</h6>
-
-              {/* Two-Level Category */}
-              <div className="mb-5">
-                <p className="fw-bold fs-12 text-brand-muted text-uppercase mb-3 tracking-widest">Category</p>
-                {CATEGORIES.map(cat => (
-                  <div key={cat.name} className="mb-2">
-                    <div
-                      className={`d-flex align-items-center justify-content-between py-2 px-3 rounded cursor-pointer transition-color ${selectedCategory === cat.name ? 'bg-brand-pale text-brand-primary fw-bold' : 'text-brand-dark hover-bg-gray'}`}
-                      onClick={() => handleCategoryToggle(cat.name)}
-                    >
-                      <span className="fs-14">{cat.name}</span>
-                      {cat.subcategories.length > 0 && (
-                        <span className="fs-12 opacity-50">{openCategories[cat.name] ? '▼' : '▶'}</span>
-                      )}
-                    </div>
-                    
-                    {/* Subcategories Collapse */}
-                    <Collapse in={openCategories[cat.name] && cat.subcategories.length > 0}>
-                      <div className="ps-4 pe-2 pt-1 pb-2">
-                        {cat.subcategories.map(sub => (
-                          <div
-                            key={sub}
-                            className={`py-2 px-3 rounded cursor-pointer transition-color fs-13 ${selectedSubcategory === sub ? 'text-brand-primary fw-semibold bg-brand-light' : 'text-brand-muted hover-text-dark'}`}
-                            onClick={() => setSelectedSubcategory(sub)}
-                          >
-                            {sub}
-                          </div>
-                        ))}
-                      </div>
-                    </Collapse>
-                  </div>
-                ))}
-              </div>
-
-              {/* Price Range */}
-              <div className="mb-5">
-                <p className="fw-bold fs-12 text-brand-muted text-uppercase mb-3 tracking-widest">Max Price</p>
-                <Form.Range
-                  min={0} max={500} step={10}
-                  value={priceRange[1]}
-                  onChange={e => setPriceRange([0, +e.target.value])}
-                  style={{ accentColor: '#0D9488' }}
-                />
-                <div className="d-flex justify-content-between mt-2">
-                  <span className="fs-12 text-brand-muted">$0</span>
-                  <span className="fs-14 fw-bold text-brand-primary">${priceRange[1]}</span>
-                </div>
-              </div>
-
-              {/* Rating Filter */}
-              <div className="mb-4">
-                <p className="fw-bold fs-12 text-brand-muted text-uppercase mb-3 tracking-widest">Min Rating</p>
-                {[4, 3, 2, 0].map(r => (
+      <div className="container-fluid px-4 px-lg-5 py-5">
+        <div className="row g-4">
+          {/* Sidebar */}
+          <div className="col-lg-3 col-xl-2">
+            <div className="nex-sidebar">
+              <p className="nex-filter-heading">Category</p>
+              {CATEGORIES.map(cat => (
+                <div key={cat.name} className="mb-1">
                   <div
-                    key={r}
-                    className="d-flex align-items-center gap-3 py-2 px-2 rounded cursor-pointer hover-bg-gray transition-color"
-                    onClick={() => setMinRating(r)}
+                    onClick={() => handleCategoryToggle(cat.name)}
+                    className="d-flex align-items-center justify-content-between py-2 px-3 rounded"
+                    style={{
+                      cursor: 'pointer', fontSize: '0.88rem', fontWeight: selectedCategory === cat.name ? 700 : 500,
+                      background: selectedCategory === cat.name ? 'rgba(139,92,246,0.12)' : 'transparent',
+                      color: selectedCategory === cat.name ? 'var(--nex-purple)' : 'var(--nex-text-muted)',
+                      transition: 'all 0.2s'
+                    }}
                   >
-                    <input type="radio" readOnly checked={minRating === r} style={{ accentColor: '#0D9488', width: '16px', height: '16px' }} />
-                    <StarRating rating={r} size={14} />
-                    <span className="fs-13 text-brand-dark fw-medium">{r > 0 ? `${r}+ stars` : 'All'}</span>
+                    <span>{cat.name}</span>
+                    {cat.subcategories.length > 0 && (
+                      <i className={`bi bi-chevron-${openCategories[cat.name] ? 'up' : 'down'}`} style={{ fontSize: '0.7rem' }} />
+                    )}
                   </div>
-                ))}
+                  <Collapse in={!!openCategories[cat.name] && cat.subcategories.length > 0}>
+                    <div className="ps-3 pt-1">
+                      {cat.subcategories.map(sub => (
+                        <div key={sub} onClick={() => setSelectedSubcategory(sub)}
+                          className="py-1 px-3 rounded"
+                          style={{
+                            cursor: 'pointer', fontSize: '0.82rem', fontWeight: selectedSubcategory === sub ? 600 : 400,
+                            color: selectedSubcategory === sub ? 'var(--nex-cyan)' : 'var(--nex-text-muted)',
+                            transition: 'color 0.2s'
+                          }}>
+                          {sub}
+                        </div>
+                      ))}
+                    </div>
+                  </Collapse>
+                </div>
+              ))}
+
+              <div style={{ height: 1, background: 'var(--nex-border)', margin: '20px 0' }} />
+              <p className="nex-filter-heading">Max Price</p>
+              <input type="range" min={0} max={500} step={10} value={priceRange[1]}
+                onChange={e => setPriceRange([0, +e.target.value])}
+                style={{ width: '100%', accentColor: 'var(--nex-purple)' }} />
+              <div className="d-flex justify-content-between mt-1">
+                <span style={{ fontSize: '0.78rem', color: 'var(--nex-text-muted)' }}>$0</span>
+                <span className="nex-gradient-text fw-bold" style={{ fontSize: '0.88rem' }}>${priceRange[1]}</span>
               </div>
 
-              <hr className="border-brand-gray my-4" />
-              
-              <Button
-                className="w-100 rounded-pill btn-brand h-44 fs-14 fw-semibold border-0"
-                onClick={() => { setSelectedCategory('All'); setSelectedSubcategory('All'); setPriceRange([0, 500]); setMinRating(0); }}
-                variant="outline-secondary"
-                style={{ background: '#F1F5F9', color: '#475569' }}
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          </Col>
+              <div style={{ height: 1, background: 'var(--nex-border)', margin: '20px 0' }} />
+              <p className="nex-filter-heading">Min Rating</p>
+              {[4, 3, 2, 0].map(r => (
+                <div key={r} onClick={() => setMinRating(r)}
+                  className="d-flex align-items-center gap-2 py-2 px-2 rounded"
+                  style={{ cursor: 'pointer', background: minRating === r ? 'rgba(139,92,246,0.08)' : 'transparent', transition: 'background 0.2s' }}>
+                  <div style={{ width: 14, height: 14, borderRadius: '50%', border: `2px solid ${minRating === r ? 'var(--nex-purple)' : 'var(--nex-border)'}`, background: minRating === r ? 'var(--nex-purple)' : 'transparent', transition: 'all 0.2s' }} />
+                  <span style={{ fontSize: '0.82rem', color: 'var(--nex-text-muted)' }}>
+                    {r > 0 ? `${r}+ ★` : 'All'}
+                  </span>
+                </div>
+              ))}
 
-          {/* Products Area */}
-          <Col lg={9} xl={10}>
-            {/* Sort + View Controls */}
-            <div className="d-flex align-items-center justify-content-between mb-4 pb-2 border-bottom border-brand-gray flex-wrap gap-3">
-              <div className="d-flex flex-wrap gap-2">
+              <div style={{ height: 1, background: 'var(--nex-border)', margin: '20px 0' }} />
+              <button className="nex-btn-outline w-100 justify-content-center" style={{ padding: '9px', fontSize: '0.82rem' }}
+                onClick={() => { setSelectedCategory('All'); setSelectedSubcategory('All'); setPriceRange([0, 500]); setMinRating(0); }}>
+                Clear Filters
+              </button>
+            </div>
+          </div>
+
+          {/* Products area */}
+          <div className="col-lg-9 col-xl-10">
+            {/* Controls bar */}
+            <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+              <div className="d-flex gap-2 flex-wrap">
                 {selectedCategory !== 'All' && (
-                  <span className="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill fs-12 fw-bold"
-                    style={{ background: 'rgba(13,148,136,0.1)', color: '#0D9488' }}>
-                    {selectedCategory} {selectedSubcategory !== 'All' && ` › ${selectedSubcategory}`}
-                    <span className="cursor-pointer ms-2 fs-14" onClick={() => setSelectedCategory('All')}>×</span>
+                  <span className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill"
+                    style={{ background: 'rgba(139,92,246,0.12)', color: 'var(--nex-purple)', fontSize: '0.82rem', fontWeight: 600 }}>
+                    {selectedCategory}{selectedSubcategory !== 'All' && ` › ${selectedSubcategory}`}
+                    <span style={{ cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }} onClick={() => { setSelectedCategory('All'); setSelectedSubcategory('All'); }}>×</span>
                   </span>
                 )}
               </div>
               <div className="d-flex align-items-center gap-3">
-                <div className="d-flex gap-1 bg-white p-1 rounded shadow-sm">
-                  <button
-                    onClick={() => setViewMode('grid')}
-                    className={`border-0 rounded p-2 fs-14 transition-color ${viewMode === 'grid' ? 'bg-brand-primary text-white' : 'bg-transparent text-brand-muted hover-text-dark'}`}
-                    style={{ width: '36px', height: '36px' }}
-                    title="Grid view"
-                  >⊞</button>
-                  <button
-                    onClick={() => setViewMode('list')}
-                    className={`border-0 rounded p-2 fs-14 transition-color ${viewMode === 'list' ? 'bg-brand-primary text-white' : 'bg-transparent text-brand-muted hover-text-dark'}`}
-                    style={{ width: '36px', height: '36px' }}
-                    title="List view"
-                  >☰</button>
+                <div className="d-flex gap-1 p-1 rounded" style={{ background: 'var(--nex-bg-card)', border: '1px solid var(--nex-border)' }}>
+                  {[['grid', 'bi-grid'], ['list', 'bi-list-ul']].map(([mode, icon]) => (
+                    <button key={mode} onClick={() => setViewMode(mode)}
+                      style={{
+                        width: 34, height: 34, border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: '0.9rem',
+                        background: viewMode === mode ? 'var(--nex-gradient)' : 'transparent',
+                        color: viewMode === mode ? 'white' : 'var(--nex-text-muted)',
+                        transition: 'all 0.2s'
+                      }}>
+                      <i className={`bi ${icon}`} />
+                    </button>
+                  ))}
                 </div>
-                <Form.Select
-                  className="border-0 shadow-sm fs-13 h-44 text-brand-dark fw-medium px-4"
-                  style={{ width: '200px', borderRadius: '12px', cursor: 'pointer' }}
-                  value={sortBy}
-                  onChange={e => setSortBy(e.target.value)}
-                >
-                  <option value="featured">Sort by: Featured</option>
-                  <option value="price-asc">Price: Low to High</option>
-                  <option value="price-desc">Price: High to Low</option>
+                <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="nex-input" style={{ width: 190, padding: '9px 14px', cursor: 'pointer' }}>
+                  <option value="featured">Sort: Featured</option>
+                  <option value="price-asc">Price: Low → High</option>
+                  <option value="price-desc">Price: High → Low</option>
                   <option value="rating">Highest Rated</option>
-                </Form.Select>
+                </select>
               </div>
             </div>
 
-            {/* Product Grid */}
             {filtered.length === 0 ? (
-              <div className="text-center py-5 my-5">
-                <p className="fs-64 mb-3 opacity-50">🔍</p>
-                <h4 className="fw-bold text-brand-dark mb-2">No products found</h4>
-                <p className="text-brand-muted fs-15 mb-4">Try adjusting your filters to find what you're looking for.</p>
-                <Button className="btn-brand rounded-pill border-0 px-5 h-48 fs-15 fw-medium"
-                  onClick={() => { setSelectedCategory('All'); setPriceRange([0, 500]); setMinRating(0); }}>
+              <div className="nex-glass-card text-center py-5 my-4">
+                <i className="bi bi-search nex-text-muted mb-3 d-block" style={{ fontSize: '3rem' }} />
+                <h4 className="nex-text-light fw-bold mb-2">No products found</h4>
+                <p className="nex-text-muted mb-4">Try adjusting your filters.</p>
+                <button className="nex-btn-primary" onClick={() => { setSelectedCategory('All'); setPriceRange([0, 500]); setMinRating(0); }}>
                   Clear All Filters
-                </Button>
+                </button>
               </div>
             ) : viewMode === 'grid' ? (
-              <Row className="g-4 row-cols-1 row-cols-sm-2 row-cols-xl-3 row-cols-xxl-4">
-                {filtered.map(product => (
-                  <Col key={product.id}>
-                    <Card className="h-100 border-0 shadow-sm product-card" style={{ borderRadius: '16px', overflow: 'hidden', transition: 'transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
-                      onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-8px)'; e.currentTarget.style.boxShadow = '0 20px 40px rgba(0,0,0,0.08)'; }}
-                      onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,.075)'; }}>
-                      <div className="position-relative overflow-hidden bg-brand-gray" style={{ height: '240px' }}>
-                        <img src={product.image} alt={product.name} className="w-100 h-100 object-fit-cover" />
-                        {product.badge && (
-                          <span className="position-absolute top-0 start-0 m-3 px-3 py-1 rounded-pill fs-11 fw-bold text-white shadow-sm tracking-wide"
-                            style={{ background: activeBadgeColor[product.badge] }}>
-                            {product.badge.toUpperCase()}
-                          </span>
-                        )}
-                        <Link to={`/products/${product.id}`}
-                          className="position-absolute top-0 end-0 m-3 d-flex align-items-center justify-content-center bg-white rounded-circle shadow text-brand-dark text-decoration-none hover-bg-gray transition-color"
-                          style={{ width: '36px', height: '36px', fontSize: '14px' }}
-                          title="View details">👁</Link>
-                      </div>
-                      <Card.Body className="p-4 d-flex flex-column">
-                        <div className="d-flex justify-content-between align-items-start mb-2">
-                          <p className="fs-12 text-brand-primary fw-medium mb-0">{product.subcategory}</p>
-                          <div className="d-flex align-items-center gap-1">
-                            <StarRating rating={product.rating} />
-                            <span className="fs-11 text-brand-muted ms-1">({product.reviews})</span>
-                          </div>
-                        </div>
-                        <Link to={`/products/${product.id}`} className="text-decoration-none">
-                          <Card.Title className="fw-bold fs-15 text-brand-dark mb-3 lh-16" style={{ minHeight: '44px' }}>
-                            {product.name}
-                          </Card.Title>
-                        </Link>
-                        <div className="mt-auto d-flex align-items-center justify-content-between pt-3 border-top border-brand-gray">
-                          <div>
-                            <span className="fw-bold fs-20 text-brand-dark">${product.price}</span>
-                            {product.originalPrice && (
-                              <span className="fs-13 text-brand-muted text-decoration-line-through ms-2">${product.originalPrice}</span>
-                            )}
-                          </div>
-                          <Button
-                            className={`rounded-pill border-0 px-3 fs-13 fw-bold transition-color ${addedToCart[product.id] ? '' : 'btn-brand shadow-sm'}`}
-                            style={{ height: '38px', background: addedToCart[product.id] ? '#10B981' : '', color: 'white', minWidth: '90px' }}
-                            onClick={() => handleAddToCart(product.id)}
-                          >
-                            {addedToCart[product.id] ? '✓ Added' : '+ Cart'}
-                          </Button>
-                        </div>
-                      </Card.Body>
-                    </Card>
-                  </Col>
+              <div className="row g-4 row-cols-1 row-cols-sm-2 row-cols-xl-3 row-cols-xxl-4">
+                {filtered.map(p => (
+                  <div className="col" key={p.id}>
+                    <ProductCard product={p} added={!!addedToCart[p.id]} onAdd={handleAddToCart} />
+                  </div>
                 ))}
-              </Row>
+              </div>
             ) : (
-              <div className="d-flex flex-column gap-4">
-                {filtered.map(product => (
-                  <div key={product.id} className="bg-white rounded shadow-sm p-3 p-md-4 d-flex flex-column flex-md-row align-items-md-center gap-4 transition-color hover-bg-light" style={{ borderRadius: '16px' }}>
-                    <div className="position-relative bg-brand-gray flex-shrink-0 rounded overflow-hidden shadow-sm" style={{ width: '100%', maxWidth: '200px', height: '160px' }}>
-                      <img src={product.image} alt={product.name} className="w-100 h-100 object-fit-cover" />
-                      {product.badge && (
-                        <span className="position-absolute top-0 start-0 m-2 px-2 py-1 rounded fs-10 fw-bold text-white shadow-sm tracking-wide"
-                          style={{ background: activeBadgeColor[product.badge] }}>
-                          {product.badge.toUpperCase()}
-                        </span>
-                      )}
+              <div className="d-flex flex-column gap-3">
+                {filtered.map(p => (
+                  <div key={p.id} className="nex-glass-card d-flex flex-column flex-md-row align-items-md-center gap-4 p-4"
+                    style={{ transition: 'border-color 0.2s' }}
+                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)'}
+                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--nex-border)'}>
+                    <div style={{ width: 120, height: 100, flexShrink: 0, borderRadius: 10, overflow: 'hidden' }}>
+                      <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     </div>
                     <div className="flex-grow-1">
-                      <div className="d-flex align-items-center gap-2 mb-2">
-                        <span className="fs-12 text-brand-primary fw-medium px-2 py-1 rounded bg-brand-pale">{product.category}</span>
-                        <span className="fs-12 text-brand-muted fw-medium">{product.subcategory}</span>
-                      </div>
-                      <Link to={`/products/${product.id}`} className="text-decoration-none">
-                        <h4 className="fw-bold fs-20 text-brand-dark mb-2">{product.name}</h4>
+                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase' }}>{p.category}</span>
+                      <Link to={`/products/${p.id}`} className="text-decoration-none">
+                        <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '1rem' }}>{p.name}</p>
                       </Link>
-                      <p className="text-brand-muted fs-14 mb-3 lh-16 max-w-600">Experience premium quality and exceptional design with this top-rated product, perfect for your everyday needs.</p>
-                      <div className="d-flex align-items-center gap-2 mb-0">
-                        <StarRating rating={product.rating} size={14} />
-                        <span className="fs-13 text-brand-dark fw-medium ms-1">({product.reviews} reviews)</span>
-                      </div>
+                      <div><StarRating rating={p.rating} size={13} /><span className="nex-text-muted ms-2" style={{ fontSize: '0.78rem' }}>({p.reviews})</span></div>
                     </div>
-                    <div className="text-md-end flex-shrink-0 d-flex flex-row flex-md-column justify-content-between align-items-center align-items-md-end border-top border-md-0 border-brand-gray pt-3 pt-md-0 mt-3 mt-md-0">
-                      <div className="mb-md-3">
-                        {product.originalPrice && (
-                          <div className="fs-14 text-brand-muted text-decoration-line-through mb-1">${product.originalPrice}</div>
-                        )}
-                        <div className="fw-bold fs-28 text-brand-dark lh-1">${product.price}</div>
+                    <div className="d-flex flex-md-column align-items-center align-items-md-end gap-3 flex-shrink-0">
+                      <div className="text-md-end">
+                        {p.originalPrice && <span className="nex-text-muted d-block text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${p.originalPrice}</span>}
+                        <span className="nex-text-light fw-bold" style={{ fontSize: '1.3rem' }}>${p.price}</span>
                       </div>
-                      <Button
-                        className={`rounded-pill border-0 px-4 fs-14 fw-bold transition-color shadow-sm ${addedToCart[product.id] ? '' : 'btn-brand'}`}
-                        style={{ height: '44px', background: addedToCart[product.id] ? '#10B981' : '', color: 'white' }}
-                        onClick={() => handleAddToCart(product.id)}
-                      >
-                        {addedToCart[product.id] ? '✓ Added to Cart' : 'Add to Cart'}
-                      </Button>
+                      <button onClick={() => handleAddToCart(p.id)} className={addedToCart[p.id] ? 'nex-btn-primary' : 'nex-btn-outline'} style={{ padding: '8px 18px', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
+                        {addedToCart[p.id] ? '✓ Added' : '+ Cart'}
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
             )}
 
-            {/* Pagination */}
             {filtered.length > 0 && (
-              <div className="d-flex justify-content-center align-items-center gap-2 mt-5 pt-4">
-                <button className="border-0 bg-white shadow-sm rounded-circle text-brand-dark fs-18 fw-medium hover-bg-gray transition-color d-flex align-items-center justify-content-center"
-                  style={{ width: '40px', height: '40px' }}>‹</button>
-                {[1, 2, 3].map(p => (
-                  <button key={p}
-                    className={`border-0 rounded-circle fs-14 fw-bold transition-color d-flex align-items-center justify-content-center ${p === 1 ? 'btn-brand text-white shadow' : 'bg-white shadow-sm text-brand-dark hover-bg-gray'}`}
-                    style={{ width: '40px', height: '40px' }}>
-                    {p}
-                  </button>
+              <div className="d-flex justify-content-center align-items-center gap-2 mt-5">
+                <button className="nex-glass-card d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, border: 'none', color: 'var(--nex-text-muted)', fontSize: '1.1rem', cursor: 'pointer', padding: 0 }}>‹</button>
+                {[1, 2, 3].map(pg => (
+                  <button key={pg} style={{
+                    width: 40, height: 40, borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem',
+                    background: pg === 1 ? 'var(--nex-gradient)' : 'var(--nex-bg-card)',
+                    color: pg === 1 ? 'white' : 'var(--nex-text-muted)',
+                  }}>{pg}</button>
                 ))}
-                <button className="border-0 bg-white shadow-sm rounded-circle text-brand-dark fs-18 fw-medium hover-bg-gray transition-color d-flex align-items-center justify-content-center"
-                  style={{ width: '40px', height: '40px' }}>›</button>
+                <button className="nex-glass-card d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, border: 'none', color: 'var(--nex-text-muted)', fontSize: '1.1rem', cursor: 'pointer', padding: 0 }}>›</button>
               </div>
             )}
-          </Col>
-        </Row>
-      </Container>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
