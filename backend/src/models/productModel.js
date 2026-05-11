@@ -1,86 +1,84 @@
-import mongoose from "mongoose";
-
-const variantSchema = new mongoose.Schema({
-  sku: {
-    type: String,
-    required: true,
-  },
-  color: {
-    type: String,
-    required: true,
-  },
-  size: { type: String },
-  price: {
-    type: Number,
-    required: true,
-  },
-  discountedPrice: {
-    type: Number,
-  },
-  quantity: {
-    type: Number,
-    default: 0,
-    min: 0,
-  },
-  images: [{ type: String }],
-  isActive: { type: Boolean, default: true },
-});
+import mongoose     from "mongoose";
+import variantSchema from "./varientModel.js";
 
 const productSchema = new mongoose.Schema(
   {
     name: {
-      type: String,
+      type:     String,
       required: true,
-      trim: true,
+      trim:     true,
     },
     description: {
-      type: String,
+      type:     String,
       required: true,
     },
     category: {
-      type: String,
+      type:     mongoose.Schema.Types.ObjectId,
+      ref:      "Category",
       required: true,
-      index: true,
-    },
-    rating: {
-      type: Number,
-      default: 0,
-      min: 0,
-      max: 5,
-    },
-    reviewCount: {
-      type: Number,
-      default: 0,
-    },
-    subCategory: {
-      type: String,
-      index: true,
+      index:    true,
     },
     brand: {
-      type: String,
+      type:  String,
       index: true,
     },
     basePrice: {
-      type: Number,
+      type:     Number,
       required: true,
     },
+
+    // ✅ variantSchema now imported from Variant.js
     variants: [variantSchema],
-    tags: [{ type: String }],
+
+    tags:   [{ type: String }],
     images: [{ type: String }],
+
     featured: {
-      type: Boolean,
+      type:    Boolean,
       default: false,
     },
+
+    isActive: {
+      type:    Boolean,
+      default: true,
+    },
+
     slug: {
-      type: String,
-      unique: true,
+      type:      String,
+      unique:    true,
       lowercase: true,
     },
-    metaTitle: String,
+
+    rating: {
+      type:    Number,
+      default: 0,
+      min:     0,
+      max:     5,
+    },
+    reviewCount: {
+      type:    Number,
+      default: 0,
+    },
+
+    metaTitle:       String,
     metaDescription: String,
   },
   { timestamps: true },
 );
+
+// ✅ FIX 4: auto-generate slug from name
+// Was: missing — slug stayed undefined on every Product.create()
+// Now: fires automatically before every save
+productSchema.pre("save", function (next) {
+  if (this.isModified("name")) {
+    this.slug = this.name
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9\s-]/g, "")
+      .replace(/\s+/g, "-");
+  }
+  next();
+});
 
 productSchema.index({ name: "text", description: "text" });
 productSchema.index({ category: 1, "variants.color": 1 });

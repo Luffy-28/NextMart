@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Navbar, Container, Nav, Dropdown } from 'react-bootstrap';
 import { useSelector, useDispatch } from 'react-redux';
@@ -18,6 +19,7 @@ const Header = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [navExpanded, setNavExpanded] = useState(false);
 
   const { user } = useSelector((state) => state.userStore);
   const { isDark } = useSelector((state) => state.themeStore);
@@ -42,7 +44,7 @@ const Header = () => {
   ];
 
   return (
-    <Navbar expand="lg" sticky="top" className="nex-navbar" collapseOnSelect>
+    <Navbar expand="lg" sticky="top" className="nex-navbar" expanded={navExpanded} onToggle={setNavExpanded}>
       <Container fluid className="px-4 px-lg-5">
 
         <Navbar.Brand as={Link} to="/" className="nex-nav-logo">
@@ -182,6 +184,7 @@ const Header = () => {
                     key={to}
                     as={Link}
                     to={to}
+                    onClick={() => setNavExpanded(false)}
                     className={`nex-nav-link ${
                       location.pathname === to ? 'active' : ''
                     }`}
@@ -194,6 +197,7 @@ const Header = () => {
                   <Nav.Link
                     as={Link}
                     to="/orders"
+                    onClick={() => setNavExpanded(false)}
                     className="nex-nav-link d-lg-none"
                   >
                     My Orders
