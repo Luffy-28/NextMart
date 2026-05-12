@@ -1,66 +1,71 @@
-import mongoose     from "mongoose";
+import mongoose from "mongoose";
 import variantSchema from "./varientModel.js";
 
 const productSchema = new mongoose.Schema(
   {
     name: {
-      type:     String,
+      type: String,
       required: true,
-      trim:     true,
+      trim: true,
     },
     description: {
-      type:     String,
+      type: String,
       required: true,
     },
     category: {
-      type:     mongoose.Schema.Types.ObjectId,
-      ref:      "Category",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
       required: true,
-      index:    true,
+      index: true,
+    },
+    subCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
+      index: true,
     },
     brand: {
-      type:  String,
+      type: String,
       index: true,
     },
     basePrice: {
-      type:     Number,
+      type: Number,
       required: true,
     },
 
     // ✅ variantSchema now imported from Variant.js
     variants: [variantSchema],
 
-    tags:   [{ type: String }],
+    tags: [{ type: String }],
     images: [{ type: String }],
 
     featured: {
-      type:    Boolean,
+      type: Boolean,
       default: false,
     },
 
     isActive: {
-      type:    Boolean,
+      type: Boolean,
       default: true,
     },
 
     slug: {
-      type:      String,
-      unique:    true,
+      type: String,
+      unique: true,
       lowercase: true,
     },
 
     rating: {
-      type:    Number,
+      type: Number,
       default: 0,
-      min:     0,
-      max:     5,
+      min: 0,
+      max: 5,
     },
     reviewCount: {
-      type:    Number,
+      type: Number,
       default: 0,
     },
 
-    metaTitle:       String,
+    metaTitle: String,
     metaDescription: String,
   },
   { timestamps: true },
@@ -84,4 +89,4 @@ productSchema.index({ name: "text", description: "text" });
 productSchema.index({ category: 1, "variants.color": 1 });
 productSchema.index({ basePrice: 1 });
 
-export default mongoose.model("Product", productSchema);
+export const Product = mongoose.model("Product", productSchema);

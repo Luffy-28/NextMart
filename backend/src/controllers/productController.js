@@ -1,5 +1,6 @@
 import Product from "../models/productModel.js";
 
+// Get all products with pagination, sorting and filtering
 export const getProducts = async (req, res) => {
   try {
     const {
@@ -99,7 +100,6 @@ export const getProductById = async (req, res) => {
   }
 };
 
-// Additional controller functions for creating, updating, and deleting feature [products] can be added here
 export const getFeaturedProducts = async (req, res) => {
   try {
     const products = await Product.find({ featured: true });
@@ -126,13 +126,13 @@ export const getProductsByTags = async (req, res) => {
         message: "Tags query parameter is required",
       });
     }
-    const tagsArray = tags.split(',').map(tag => tag.trim());
+    const tagsArray = tags.split(",").map((tag) => tag.trim());
     const products = await Product.find({ tags: { $in: tagsArray } });
     return res.status(200).send({
-      status:"success",
-      message:"Products fetched successfully",
-      data:products
-    })
+      status: "success",
+      message: "Products fetched successfully",
+      data: products,
+    });
   } catch (error) {
     return res.status(500).send({
       status: "error",
@@ -141,32 +141,30 @@ export const getProductsByTags = async (req, res) => {
   }
 };
 
-
-export const getProductBySlug = async (req, res) =>{
+export const getProductBySlug = async (req, res) => {
   try {
-    const {slug} = req.params;
-    const product = await Product.findOne({slug, isActive: true}).populate({
+    const { slug } = req.params;
+    const product = await Product.findOne({ slug, isActive: true }).populate({
       path: "category",
       select: "name slug parent",
-      populate:{path:"parent",select:"name slug"}
-    })
-    if(!product || !product.isActive){
+      populate: { path: "parent", select: "name slug" },
+    });
+    if (!product || !product.isActive) {
       return res.status(404).send({
-        status:"error",
-        message:"Product not found"
-      })
+        status: "error",
+        message: "Product not found",
+      });
     }
     return res.status(200).send({
-      status:"success",
-      message:"Product fetched successfully",
-      data:product
-    })
-    
+      status: "success",
+      message: "Product fetched successfully",
+      data: product,
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
-      status:"error",
-      message:"Error getting product by slug"
-    })
+      status: "error",
+      message: "Error getting product by slug",
+    });
   }
-}
+};
