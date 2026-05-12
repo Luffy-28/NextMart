@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Navbar, Container, Nav, Dropdown } from 'react-bootstrap';
-import { useSelector, useDispatch } from 'react-redux';
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Navbar, Container, Nav, Dropdown } from "react-bootstrap";
+import { useSelector, useDispatch } from "react-redux";
 import {
   FiSun,
   FiMoon,
@@ -11,9 +11,9 @@ import {
   FiPackage,
   FiLogOut,
   FiSearch,
-} from 'react-icons/fi';
-import { setUser } from '../../features/user/userSlice';
-import { toggleTheme } from '../../features/theme/themeSlice';
+} from "react-icons/fi";
+import { setUser } from "../../features/user/userSlice";
+import { toggleTheme } from "../../features/theme/themeSlice";
 
 const Header = () => {
   const location = useLocation();
@@ -25,45 +25,49 @@ const Header = () => {
   const { isDark } = useSelector((state) => state.themeStore);
 
   const isAuthPage =
-    location.pathname === '/login' ||
-    location.pathname === '/signup' ||
-    location.pathname === '/verify-email';
+    location.pathname === "/login" ||
+    location.pathname === "/signup" ||
+    location.pathname === "/verify-email";
 
   const handleLogout = () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
     dispatch(setUser({}));
-    navigate('/login');
+    navigate("/login");
   };
 
   const navLinks = [
-    { to: '/', label: 'Home' },
-    { to: '/products', label: 'Shop' },
-    { to: '/categories', label: 'Categories' },
-    { to: '/deals', label: 'Deals' },
+    { to: "/", label: "Home" },
+    { to: "/products", label: "Shop" },
+    { to: "/categories", label: "Categories" },
+    { to: "/deals", label: "Deals" },
   ];
 
   return (
-    <Navbar expand="lg" sticky="top" className="nex-navbar" expanded={navExpanded} onToggle={setNavExpanded}>
+    <Navbar
+      expand="lg"
+      sticky="top"
+      className="nex-navbar"
+      expanded={navExpanded}
+      onToggle={setNavExpanded}
+    >
       <Container fluid className="px-4 px-lg-5">
-
         <Navbar.Brand as={Link} to="/" className="nex-nav-logo">
           NexMart
         </Navbar.Brand>
 
         <div className="d-flex align-items-center ms-auto order-lg-last gap-2">
-
           <button
             onClick={() => dispatch(toggleTheme())}
             className="nex-nav-icon-btn"
-            title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
             type="button"
             style={{
-              border: 'none',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
+              border: "none",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
             }}
           >
             {isDark ? (
@@ -78,10 +82,10 @@ const Header = () => {
               to="/cart"
               className="nex-nav-icon-btn position-relative me-1"
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                textDecoration: 'none',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                textDecoration: "none",
               }}
             >
               <FiShoppingBag size={21} />
@@ -90,7 +94,7 @@ const Header = () => {
           )}
 
           {isAuthPage ? (
-            location.pathname === '/login' ? (
+            location.pathname === "/login" ? (
               <Link to="/signup" className="nex-btn-primary nex-btn-sm">
                 Create Account
               </Link>
@@ -103,11 +107,11 @@ const Header = () => {
             <Dropdown align="end">
               <Dropdown.Toggle as="div" className="nex-avatar-toggle">
                 <div className="nex-avatar-circle">
-                  {user.name ? user.name.charAt(0).toUpperCase() : 'U'}
+                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
 
                 <span className="d-none d-sm-block small fw-medium nex-text-light">
-                  {user.name?.split(' ')[0] || 'User'}
+                  {user.name?.split(" ")[0] || "User"}
                 </span>
 
                 <FiChevronDown size={14} className="nex-text-muted" />
@@ -186,7 +190,7 @@ const Header = () => {
                     to={to}
                     onClick={() => setNavExpanded(false)}
                     className={`nex-nav-link ${
-                      location.pathname === to ? 'active' : ''
+                      location.pathname === to ? "active" : ""
                     }`}
                   >
                     {label}
