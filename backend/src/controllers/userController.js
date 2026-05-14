@@ -15,6 +15,7 @@ import {
   verifyRefreshToken,
 } from "../helpers/tokenHelper.js";
 import { User } from "../models/userModel.js";
+import { Address } from "../models/addressModel.js";
 
 const client = new OAuth2Client(config.google.clientId);
 //Register User
@@ -254,58 +255,96 @@ export const getUserDetail = async (req, res) => {
     });
   }
 };
-export const verifyGoogleLogin = async(req,res) =>{
+export const verifyGoogleLogin = async (req, res) => {
   try {
     const token = req.body.token || req.body.idToken;
-     //    // 1. Ask Google's library to 
-     // cryptographically verify the token
-     const ticket = await client.verifyIdToken({
+    //    // 1. Ask Google's library to
+    // cryptographically verify the token
+    const ticket = await client.verifyIdToken({
       idToken: token,
       audience: config.google.clientId,
-     });
-     // 2. extract the verified payload
-   const payload = ticket.getPayload();
-   const googleId = payload['sub'];
-   const email = payload['email']
-   const name = payload['name']
-   const image = payload['picture']
+    });
+    // 2. extract the verified payload
+    const payload = ticket.getPayload();
+    const googleId = payload["sub"];
+    const email = payload["email"];
+    const name = payload["name"];
+    const image = payload["picture"];
 
-   //3. find the user and create a user in the mongodb using google account
+    //3. find the user and create a user in the mongodb using google account
 
-   let user = await User.findOne({email})
-   if(user){
-    if(!user.googleId){
-      user.googleId = googleId;
+    let user = await User.findOne({ email });
+    if (user) {
+      if (!user.googleId) {
+        user.googleId = googleId;
         user.isVerified = true;
         await user.save();
+      }
+    } else {
+      user = await User.insertOne({
+        name,
+        email,
+        googleId,
+        image,
+        isVerified: true,
+      });
     }
-   }else{
-    user = await User.insertOne({
-      name,
-      email,
-      googleId,
-      image,
-      isVerified: true,
-    })
-   }
-   const accessToken = signToken({email: user.email})
-   const refreshToken = signRefreshToken({email: user.email})
-   const {password, ...safeUser} = user.toObject();
+    const accessToken = signToken({ email: user.email });
+    const refreshToken = signRefreshToken({ email: user.email });
+    const { password, ...safeUser } = user.toObject();
 
-   return res.status(200).send({
-    status:"success",
-    message: "google login successful",
-    accessToken,
-    refreshToken,
-    data: safeUser,
-   })
-    
+    return res.status(200).send({
+      status: "success",
+      message: "google login successful",
+      accessToken,
+      refreshToken,
+      data: safeUser,
+    });
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res.status(500).send({
-      status:"error",
-      message:"error verifying google login",
-      error:error.message
-    })
+      status: "error",
+      message: "error verifying google login",
+      error: error.message,
+    });
   }
-}
+};
+
+// Update address in user profile
+export const updateAddress = async (req, res) => {
+  try {
+    const { address } = req.body;
+    const userId = req.user._id;
+    if (!address) {
+      return res.status(400).send({
+        status: "error",
+        message: "Address is required",
+      });
+    }
+    if (address.isDefault) {
+      await Address.updateMany({ user: userId }, { isDefault: false });
+    }
+    const userAddress = await Address.insertOne({
+      user: userId,
+      ...address,
+      isDefault: address.isDefault ?? false,
+    });
+    if (!userAddress) {
+      return res.status(500).send({
+        status: "error",
+        message: "Error saving address",
+      });
+    }
+    return res.status(201).send({
+      status: "success",
+      message: "Address saved successfully",
+      data: userAddress,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error saving address",
+    });
+  }
+};
