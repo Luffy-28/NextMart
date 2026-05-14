@@ -32,7 +32,7 @@ const subCategorySchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-subCategorySchema.pre("save", function (next) {
+subCategorySchema.pre("save", async function () {
   if (this.isModified("name")) {
     this.slug = this.name
       .toLowerCase()
@@ -40,8 +40,6 @@ subCategorySchema.pre("save", function (next) {
       .replace(/[^a-z0-9\s-]/g, "")
       .replace(/\s+/g, "-");
   }
-
-  next();
 });
 
 subCategorySchema.index({ category: 1, slug: 1 }, { unique: true });
