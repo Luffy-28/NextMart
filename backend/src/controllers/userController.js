@@ -158,6 +158,19 @@ export const resendOtp = async (req, res) => {
     });
   }
 };
+
+//Reset Password
+export const resetPassword = async (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error resetting password",
+    });
+  }
+};
+
 // REFRESH TOKEN
 export const generateAccessTokens = async (req, res) => {
   try {
@@ -235,6 +248,18 @@ export const loginUser = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "Error logging in User",
+    });
+  }
+};
+
+//logout User
+export const logoutUser = async (req, res) => {
+  try {
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error logging out user",
     });
   }
 };
@@ -345,6 +370,33 @@ export const updateAddress = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "error saving address",
+    });
+  }
+};
+
+// Get User Address
+
+export const getAddress = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const addresses = await Address.find({ user: userId });
+    if (!addresses) {
+      return res.status(404).send({
+        status: "error",
+        message:
+          "No address found for tge user. Add an address to fetch it here",
+      });
+    }
+    return res.status(200).send({
+      status: "success",
+      message: "Address fetched successfully",
+      data: addresses,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error fetching address",
     });
   }
 };
