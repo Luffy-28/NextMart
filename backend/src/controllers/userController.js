@@ -158,10 +158,100 @@ export const resendOtp = async (req, res) => {
     });
   }
 };
+//requestPasswordreset
+export const requestResetPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(404).send({
+        status: "error",
+        message: "email is required",
+      });
+    }
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(200).send({
+        status: "success",
+        message:
+          "If a user with the provided email exists, a password reset link has been sent to the email address",
+        data: {
+          email,
+          otpExpiry: config.otp.expiry,
+        },
+      });
+    }
+    if (!existingUser.isVerified) {
+      return res.status(400).send({
+        status: "error",
+        message:
+          "User is not verified. Please verify your account before requesting password reset",
+      });
+    }
+    const otp = generateOTP();
+    await storeOtp(email, otp, config.otp.expiry);
+    await sendOTPEmail(email, otp, existingUser.name);
+    return res.status(200).send({
+      status: "success",
+      message:
+        "Password reset code has been sent to your email. Please check your inbox",
+      data: {
+        email,
+        otpExpiry: config.otp.expiry,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error requesting password reset",
+    });
+  }
+};
 
 //Reset Password
 export const resetPassword = async (req, res) => {
   try {
+    const { email, otp, newPassword } = req.body;
+    if (!email || !otp || !newPassword) {
+      return res.status(400).send({
+        status: "error",
+        message: "email, otp and new password are required",
+      });
+    }
+    const existingUser = await User.findOne({ email });
+    if (!existingUser) {
+      return res.status(404).send({
+        status: "error",
+        message: "User not found",
+      });
+    }
+    if (!existingUser.isVerified) {
+      return res.status(400).send({
+        status: "error",
+        message:
+          "User is not verified. Please verify your account before resetting password",
+      });
+    }
+    if (newPassword.length < 6) {
+      return res.send({
+        status: "error",
+        message: "Password should be at least 6 characters long",
+      });
+    }
+    const otpMatch = await verifyOTP(email, otp);
+    if (!otpMatch) {
+      return res.status(400).send({
+        status: "error",
+        message: "INvalid Otp",
+      });
+    }
+    existingUser.password = hashPassword(newPassword);
+    await existingUser.save();
+    return res.status(200).send({
+      status: "success",
+      message:
+        "Password reset successful! You can now log in with your new password",
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
@@ -248,18 +338,6 @@ export const loginUser = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "Error logging in User",
-    });
-  }
-};
-
-//logout User
-export const logoutUser = async (req, res) => {
-  try {
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({
-      status: "error",
-      message: "error logging out user",
     });
   }
 };
