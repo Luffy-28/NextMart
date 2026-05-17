@@ -14,6 +14,7 @@ import userRouter from "./src/routers/userRouter.js";
 import productRoutes from "./src/routers/productRoutes.js";
 import categoryRouter from "./src/routers/categoryRouter.js";
 import subCategoryRouter from "./src/routers/subCategoryRouter.js";
+import dealRouter from "./src/routers/dealRouter.js";
 
 // Swagger Imports
 import swaggerUi from "swagger-ui-express";
@@ -54,6 +55,7 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/products", productRoutes);
 app.use("/api/v1/categories", categoryRouter);
 app.use("/api/v1/subcategories", subCategoryRouter);
+app.use("/api/v1/deals", dealRouter);
 
 // Setup Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
