@@ -9,7 +9,7 @@ import {
   resetPassword,
   verificationOTP,
   verifyGoogleLogin,
-} from "../controllers/userController.js";
+} from "../controllers/authController.js";
 import {
   loginUserValidator,
   registerUserValidator,
