@@ -1,3 +1,4 @@
+import { compareData } from "../helpers/encryptHelpers.js";
 import { Address } from "../models/addressModel.js";
 import { User } from "../models/userModel.js";
 
@@ -52,6 +53,60 @@ export const addAddress = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "error saving address",
+    });
+  }
+};
+
+//update pasword
+export const updatePassword = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).send({
+        status: "error",
+        message: "current password and new password are required",
+      });
+    }
+    if (newPassword.length < 8) {
+      return res.status(400).send({
+        status: "error",
+        message: "New password must be at least 8 characters",
+      });
+    }
+
+    if (currentPassword === newPassword) {
+      return res.status(400).send({
+        status: "error",
+        message: "New password must be different from current password",
+      });
+    }
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return res.status(404).send({
+        status: "error",
+        message: "user not found",
+      });
+    }
+    const isMatch = await compareData(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).send({
+        status: "error",
+        message: "current password is incorrect",
+      });
+    }
+    user.password = newPassword;
+    await User.save();
+    return res.status(200).send({
+      status: "success",
+      message: "password updated successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error updating password",
     });
   }
 };
