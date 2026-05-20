@@ -10,12 +10,11 @@ const orderItemSchema = new mongoose.Schema(
 
     variantId: {
       type: mongoose.Schema.Types.ObjectId,
-      required: true,
+      ref: "Variant",
     },
 
     sku: {
       type: String,
-      required: true,
     },
 
     name: {
@@ -49,20 +48,6 @@ const orderItemSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const shippingAddressSchema = new mongoose.Schema(
-  {
-    fullName: String,
-    phone: String,
-    street: String,
-    suburb: String,
-    city: String,
-    state: String,
-    postcode: String,
-    country: String,
-  },
-  { _id: false },
-);
-
 const orderSchema = new mongoose.Schema(
   {
     orderNumber: {
@@ -80,7 +65,11 @@ const orderSchema = new mongoose.Schema(
 
     items: [orderItemSchema],
 
-    shippingAddress: shippingAddressSchema,
+    shippingAddress: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Address",
+      required: true,
+    },
 
     subtotal: {
       type: Number,
@@ -153,3 +142,4 @@ const orderSchema = new mongoose.Schema(
 );
 
 export const Order = mongoose.model("Order", orderSchema);
+
