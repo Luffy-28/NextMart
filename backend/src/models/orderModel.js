@@ -8,15 +8,6 @@ const orderItemSchema = new mongoose.Schema(
       required: true,
     },
 
-    variantId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Variant",
-    },
-
-    sku: {
-      type: String,
-    },
-
     name: {
       type: String,
       required: true,

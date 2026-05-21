@@ -30,15 +30,10 @@ const seedProducts = async () => {
         category: dummyCategoryId,
         brand: `Brand ${Math.ceil(i / 4)}`,
         basePrice: Math.floor(Math.random() * 500) + 50,
-        variants: [
-          {
-            color: ["Red", "Blue", "Black", "White"][i % 4],
-            size: ["S", "M", "L", "XL"][i % 4],
-            sku: `SKU-${i}001`,
-            price: Math.floor(Math.random() * 500) + 50,
-            quantity: Math.floor(Math.random() * 100) + 10,
-          }
-        ],
+        discountedPrice: Math.floor(Math.random() * 400) + 30,
+        stock: Math.floor(Math.random() * 100) + 10,
+        color: ["Red", "Blue", "Black", "White"][i % 4],
+        size: ["S", "M", "L", "XL"][i % 4],
         tags: tagsOptions[i % 5],
         images: [`https://picsum.photos/seed/${i}/800/600`],
         featured: i % 3 === 0,

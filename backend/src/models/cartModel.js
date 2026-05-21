@@ -8,16 +8,6 @@ const cartItemSchema = new mongoose.Schema(
       required: true,
     },
 
-    variantId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-    },
-
-    sku: {
-      type: String,
-      required: true,
-    },
-
     name: {
       type: String,
       required: true,
