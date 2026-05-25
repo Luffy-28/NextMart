@@ -1,7 +1,7 @@
 import Stripe from "stripe";
 import { Order } from "../models/orderModel.js";
 import { config } from "../config/config.js";
-import { Payment } from "../models/paymentModel";
+import { Payment } from "../models/paymentModel.js";
 
 // create a Payment Intent
 
