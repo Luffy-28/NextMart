@@ -10,7 +10,7 @@ const stripe = new Stripe(config.stripe.secretKey);
 export const createPaymentIntent = async (req, res) => {
   try {
     const userId = req.user._id;
-    const orderId = req.body;
+    const { orderId } = req.body;
 
     const order = await Order.findOne({ _id: orderId, user: userId });
     if (!order) {
@@ -24,7 +24,7 @@ export const createPaymentIntent = async (req, res) => {
       currency: "aud",
       metadata: { orderId: order._id.toString() },
     });
-    const payment = await Payment.insertOne({
+    const payment = await Payment.create({
       user: userId,
       order: order._id,
       provider: "stripe",

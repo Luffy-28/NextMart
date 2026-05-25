@@ -1,5 +1,5 @@
 import express from "express";
-
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 import {
   createPaymentIntent,
   stripeWebHook,
@@ -7,7 +7,7 @@ import {
 
 const router = express.Router();
 
-router.post("/create-payment-intent", createPaymentIntent);
+router.post("/create-payment-intent", authMiddleware, createPaymentIntent);
 router.post(
   "/webhook",
   express.raw({ type: "application/json" }),

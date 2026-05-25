@@ -1,5 +1,5 @@
 import { Order } from "../models/orderModel.js";
-import { Product } from "../models/productModel.js";
+import Product from "../models/productModel.js";
 import { Cart } from "../models/cartModel.js";
 import { Address } from "../models/addressModel.js";
 
@@ -81,14 +81,14 @@ export const createOrder = async (req, res) => {
         message: "Cart is empty",
       });
     }
-    const subTotal = cart.items.reduce(
+    const subtotal = cart.items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0,
     );
-    const tax = Math.round(subTotal * 0.1);
-    const shippingFee = subTotal > 50 ? 0 : 15;
-    const total = subTotal + tax + shippingFee;
-    const order = await Order.insertOne({
+    const tax = Math.round(subtotal * 0.1);
+    const shippingFee = subtotal > 50 ? 0 : 15;
+    const total = subtotal + tax + shippingFee;
+    const order = await Order.create({
       user: userId,
       orderNumber: `ORD-${Date.now().toString().slice(-8)}`,
       items: cart.items.map((item) => ({
@@ -100,7 +100,7 @@ export const createOrder = async (req, res) => {
         size: item.size,
       })),
       shippingAddress: shippingAddressId,
-      subTotal,
+      subtotal,
       tax,
       shippingFee,
       totalAmount: total,

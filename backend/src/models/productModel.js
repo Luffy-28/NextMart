@@ -93,5 +93,7 @@ productSchema.pre("save", function (next) {
 
 productSchema.index({ name: "text", description: "text" });
 productSchema.index({ basePrice: 1 });
+productSchema.index({ tags: 1 });
 
-export const Product = mongoose.model("Product", productSchema);
+const Product = mongoose.model("Product", productSchema);
+export default Product;

@@ -8,16 +8,20 @@ import passport from "./src/config/passport.js";
 import { configDotenv } from "dotenv";
 import { config } from "./src/config/config.js";
 import { connectRedis } from "./src/helpers/redisClient.js";
-import { authLimiter, paymentLimiter, generalLimiter } from "./src/middlewares/rateLimiter.js";
-import authRouter from "./src/routers/authRoutes.js";
-import userRouter from "./src/routers/userRoutes.js";
-import productRoutes from "./src/routers/productRoutes.js";
-import categoryRouter from "./src/routers/categoryRoutes.js";
-import subCategoryRouter from "./src/routers/subCategoryRoutes.js";
-import dealRouter from "./src/routers/dealRoutes.js";
-import orderRouter from "./src/routers/orderRoutes.js";
-import paymentRoutes from "./src/routers/paymentRoutes.js";
-import cartRoutes from "./src/routers/cartRoutes.js";
+import {
+  authLimiter,
+  paymentLimiter,
+  generalLimiter,
+} from "./src/middlewares/rateLimiter.js";
+import authRouter from "./src/routers/authRouter.js";
+import userRouter from "./src/routers/userRouter.js";
+import productRoutes from "./src/routers/productRouter.js";
+import categoryRouter from "./src/routers/categoryRouter.js";
+import subCategoryRouter from "./src/routers/subCategoryRouter.js";
+import dealRouter from "./src/routers/dealRouter.js";
+import orderRouter from "./src/routers/orderRouter.js";
+import paymentRoutes from "./src/routers/paymentRouter.js";
+import cartRouter from "./src/routers/cartRouter.js";
 
 // Swagger Imports
 import swaggerUi from "swagger-ui-express";
@@ -61,7 +65,7 @@ app.use("/api/v1/subcategories", generalLimiter, subCategoryRouter);
 app.use("/api/v1/deals", generalLimiter, dealRouter);
 app.use("/api/v1/orders", generalLimiter, orderRouter);
 app.use("/api/v1/payments", paymentLimiter, paymentRoutes);
-app.use("/api/v1/carts", generalLimiter, cartRoutes);
+app.use("/api/v1/carts", generalLimiter, cartRouter);
 
 // Setup Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));

@@ -1,4 +1,4 @@
-import { Product } from "../models/productModel.js";
+import Product from "../models/productModel.js";
 import { Cart } from "../models/cartModel.js";
 
 // Fetch User's Cart
@@ -189,7 +189,7 @@ export const updateCartQuantity = async (req, res) => {
 // Remove Item from Cart
 export const removeFromCart = async (req, res) => {
   try {
-    const { productId } = req.body;
+    const { productId } = req.params;
     const userId = req.user._id;
 
     if (!productId) {

@@ -1,4 +1,4 @@
-import { Product } from "../models/productModel.js";
+import Product from "../models/productModel.js";
 
 // Get all products with pagination, sorting and filtering
 export const getProducts = async (req, res) => {
@@ -143,7 +143,10 @@ export const getProductsByTags = async (req, res) => {
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const [products, total] = await Promise.all([
-      Product.find({ tags: { $in: tagsArray } }).skip(skip).limit(parseInt(limit)).lean(),
+      Product.find({ tags: { $in: tagsArray } })
+        .skip(skip)
+        .limit(parseInt(limit))
+        .lean(),
       Product.countDocuments({ tags: { $in: tagsArray } }),
     ]);
 
