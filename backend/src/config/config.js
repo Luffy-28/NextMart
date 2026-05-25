@@ -35,7 +35,7 @@ export const config = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
     password: process.env.REDIS_PASSWORD,
-    redishost: process.env.REDIS_HOST,
+    userName: process.env.REDIS_USERNAME,
   },
   otp: {
     expiry: parseInt(process.env.OTP_EXPIRY) || 300,

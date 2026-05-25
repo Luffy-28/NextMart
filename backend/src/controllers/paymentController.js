@@ -21,7 +21,7 @@ export const createPaymentIntent = async (req, res) => {
     }
     const paymentIntent = await stripe.paymentIntents.create({
       amount: order.totalAmount * 100, //convert to cents
-      currency: "Aud",
+      currency: "aud",
       metadata: { orderId: order._id.toString() },
     });
     const payment = await Payment.insertOne({
@@ -30,7 +30,7 @@ export const createPaymentIntent = async (req, res) => {
       provider: "stripe",
       amount: order.totalAmount,
       status: "pending",
-      tramsactionId: paymentIntent.id,
+      transactionId: paymentIntent.id,
     });
     return res.status(200).send({
       status: "success",
@@ -109,7 +109,7 @@ export const stripeWebHook = async (req, res) => {
       });
     }
     // ALWAYS return 200 OK to Stripe
-    return res.status(200).json({ received: true });
+    return res.status(200).send({ received: true });
   } catch (error) {
     console.log(error);
     return res.status(500).send({

@@ -15,4 +15,5 @@ router.get("/address", authMiddleware, getAddress);
 router.post("/addAddress", authMiddleware, addAddress);
 router.patch("/me", authMiddleware, updateUserDetails);
 router.patch("/address/:id", authMiddleware, updateAddress);
+
 export default router;

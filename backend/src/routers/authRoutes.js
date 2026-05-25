@@ -29,7 +29,6 @@ router.get("/refresh", generateAccessTokens);
 router.post("/forgot-password", requestResetPassword);
 router.post("/reset-password", resetPassword);
 
-//triger google login from this
 router.get(
   "/google",
   passport.authenticate("google", {
@@ -39,7 +38,6 @@ router.get(
 
 router.post("/googleVerification", verifyGoogleLogin);
 
-// trigger callback route
 router.get(
   "/google/callback",
   passport.authenticate("google", {

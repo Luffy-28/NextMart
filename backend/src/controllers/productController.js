@@ -102,10 +102,23 @@ export const getProductById = async (req, res) => {
 
 export const getFeaturedProducts = async (req, res) => {
   try {
-    const products = await Product.find({ featured: true });
+    const { page = 1, limit = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [products, total] = await Promise.all([
+      Product.find({ featured: true }).skip(skip).limit(parseInt(limit)).lean(),
+      Product.countDocuments({ featured: true }),
+    ]);
+
     return res.status(200).send({
       status: "success",
       data: products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        limit: parseInt(limit),
+      },
     });
   } catch (error) {
     console.log(error);
@@ -119,7 +132,7 @@ export const getFeaturedProducts = async (req, res) => {
 // Get product based on the tags
 export const getProductsByTags = async (req, res) => {
   try {
-    const { tags } = req.query;
+    const { tags, page = 1, limit = 10 } = req.query;
     if (!tags) {
       return res.status(400).send({
         status: "error",
@@ -127,11 +140,23 @@ export const getProductsByTags = async (req, res) => {
       });
     }
     const tagsArray = tags.split(",").map((tag) => tag.trim());
-    const products = await Product.find({ tags: { $in: tagsArray } });
+    const skip = (parseInt(page) - 1) * parseInt(limit);
+
+    const [products, total] = await Promise.all([
+      Product.find({ tags: { $in: tagsArray } }).skip(skip).limit(parseInt(limit)).lean(),
+      Product.countDocuments({ tags: { $in: tagsArray } }),
+    ]);
+
     return res.status(200).send({
       status: "success",
       message: "Products fetched successfully",
       data: products,
+      pagination: {
+        currentPage: parseInt(page),
+        totalPages: Math.ceil(total / parseInt(limit)),
+        totalItems: total,
+        limit: parseInt(limit),
+      },
     });
   } catch (error) {
     return res.status(500).send({

@@ -1,6 +1,7 @@
 import { Order } from "../models/orderModel.js";
 import { Product } from "../models/productModel.js";
 import { Cart } from "../models/cartModel.js";
+import { Address } from "../models/addressModel.js";
 
 // get all the orders for a user
 export const getMyOrders = async (req, res) => {
@@ -31,7 +32,9 @@ export const getOrderById = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user._id;
 
-    const order = await Order.findOne({ id: orderId, user: userId });
+    const order = await Order.findOne({ _id: orderId, user: userId })
+      .populate("items.product")
+      .populate("shippingAddress");
     if (!order) {
       return res.status(404).send({
         status: "error",
@@ -40,7 +43,7 @@ export const getOrderById = async (req, res) => {
     }
     return res.status(200).send({
       status: "success",
-      message: "Order detials fetched successfully",
+      message: "Order details fetched successfully",
       data: order,
     });
   } catch (error) {
@@ -64,6 +67,13 @@ export const createOrder = async (req, res) => {
         message: "Shipping address is required",
       });
     }
+    const address = await Address.findOne({ _id: shippingAddressId, user: userId });
+    if (!address) {
+      return res.status(404).send({
+        status: "error",
+        message: "Shipping address not found",
+      });
+    }
     let cart = await Cart.findOne({ user: userId }).populate("items.product");
     if (!cart || cart.items.length === 0) {
       return res.status(400).send({
@@ -76,11 +86,7 @@ export const createOrder = async (req, res) => {
       0,
     );
     const tax = Math.round(subTotal * 0.1);
-    if (subTotal < 50) {
-      shippingFee = 15;
-    } else {
-      shippingFee = 0;
-    }
+    const shippingFee = subTotal > 50 ? 0 : 15;
     const total = subTotal + tax + shippingFee;
     const order = await Order.insertOne({
       user: userId,
@@ -88,7 +94,6 @@ export const createOrder = async (req, res) => {
       items: cart.items.map((item) => ({
         product: item.product._id,
         name: item.name,
-        price: item.price,
         quantity: item.quantity,
         color: item.color,
         price: item.price,
@@ -135,7 +140,7 @@ export const cancelOrder = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user._id;
 
-    const order = await Order.findOne({ id: orderId, user: userId });
+    const order = await Order.findOne({ _id: orderId, user: userId });
     if (!order) {
       return res.status(404).send({
         status: "error",

@@ -93,7 +93,7 @@ export const verificationOTP = async (req, res) => {
     await sendWelcomeEmail(email, existingUser.name);
     const token = signToken({ email: existingUser.email });
 
-    res.status(200).json({
+    return res.status(200).send({
       status: "success",
       message: "Email verified successfully! Welcome aboard!",
       data: {
@@ -264,7 +264,7 @@ export const resetPassword = async (req, res) => {
 // REFRESH TOKEN
 export const generateAccessTokens = async (req, res) => {
   try {
-    const refreshToken = req.headers.authorization;
+    const refreshToken = req.headers.authorization?.split(" ")[1];
 
     const data = verifyRefreshToken(refreshToken);
 
@@ -297,7 +297,10 @@ export const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) {
-      return res.status(400).send({ status: "error", message: "..." });
+      return res.status(400).send({
+        status: "error",
+        message: "Email and password are required",
+      });
     }
     const userData = await User.findOne({ email });
     if (userData) {
