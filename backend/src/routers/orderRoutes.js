@@ -11,7 +11,7 @@ const router = express.Router();
 
 router.get("/", authMiddleware, getMyOrders);
 router.get("/:id", authMiddleware, getOrderById);
-router.post("/", authMiddleware, createOrder);
-router.patch("/:id/cancel", authMiddleware, cancelOrder);
+router.post("/create", authMiddleware, createOrder);
+router.patch("/cancel/:id", authMiddleware, cancelOrder);
 
 export default router;

@@ -50,13 +50,66 @@ export const createPaymentIntent = async (req, res) => {
 };
 
 //webhook to handle payment intent status change
-export const stripeWebHook = (req, res) => {
+export const stripeWebHook = async (req, res) => {
   try {
     const sig = req.headers["stripe-signature"];
     let event;
     try {
-      event = stripe.webhooks.constructEvent(req.body, sig);
-    } catch (error) {}
+      event = stripe.webhooks.constructEvent(
+        req.body,
+        sig,
+        config.stripe.webhooksecret,
+      );
+    } catch (error) {
+      console.log(error);
+      return res.status(400).send({
+        status: "error",
+        message: "webhook signature verification failed",
+      });
+    }
+    try {
+      switch (event.type) {
+        case "payment_intent.succeeded": {
+          const pi = event.data.object;
+          const orderId = pi.metadata.orderId;
+          await Order.findByIdAndUpdate(orderId, {
+            paymentStatus: "paid",
+            orderStatus: "confirmed",
+          });
+          await Payment.findOneAndUpdate(
+            { transactionId: pi.id },
+            { status: "succeeded", paidAt: new Date() },
+          );
+          console.log(`Payment for order ${orderId} succeeded.`);
+          break;
+        }
+        case "payment_intent.payment_failed": {
+          const pi = event.data.object;
+          const orderId = pi.metadata.orderId;
+          await Order.findByIdAndUpdate(orderId, {
+            paymentStatus: "failed",
+            orderStatus: "cancelled",
+          });
+          await Payment.findOneAndUpdate(
+            { transactionId: pi.id },
+            { status: "failed", failedAt: new Date() },
+          );
+          console.log(`Payment for order ${orderId} failed.`);
+          break;
+        }
+        default:
+          console.log(`Unhandled event type ${event.type}`);
+          break;
+      }
+    } catch (error) {
+      console.log(error);
+      return res.status(500).send({
+        status: "error",
+        message: "failed to process the webhook event",
+      });
+    }
+    // ALWAYS return 200 OK to Stripe
+    return res.status(200).json({ received: true });
   } catch (error) {
     console.log(error);
     return res.status(500).send({
