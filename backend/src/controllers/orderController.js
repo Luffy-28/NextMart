@@ -3,7 +3,7 @@ import { Product } from "../models/productModel.js";
 import { Cart } from "../models/cartModel.js";
 
 // get all the orders for a user
-export const getAllorders = async (req, res) => {
+export const getMyOrders = async (req, res) => {
   try {
     const userId = req.user._id;
     const orders = await Order.find({ user: userId })
@@ -31,27 +31,16 @@ export const getOrderById = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user._id;
 
-    const order = await Order.findById(orderId)
-      .populate("items.product")
-      .populate("shippingAddress");
-
+    const order = await Order.findOne({ id: orderId, user: userId });
     if (!order) {
       return res.status(404).send({
         status: "error",
         message: "Order not found",
       });
     }
-
-    if (order.user.toString() !== userId.toString()) {
-      return res.status(403).send({
-        status: "error",
-        message: "You are not authorized to view this order",
-      });
-    }
-
     return res.status(200).send({
       status: "success",
-      message: "Order fetched successfully",
+      message: "Order detials fetched successfully",
       data: order,
     });
   } catch (error) {
@@ -67,123 +56,69 @@ export const getOrderById = async (req, res) => {
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user._id;
-    const {
-      items,
-      shippingAddress,
-      paymentMethod,
-      shippingFee,
-      tax,
-      discount,
-      couponCode,
-    } = req.body;
+    const { shippingAddressId, paymentMethod = "card" } = req.body;
 
-    if (!items || !Array.isArray(items) || items.length === 0) {
-      return res.status(400).send({
-        status: "error",
-        message: "Order items are required and must not be empty",
-      });
-    }
-
-    if (!shippingAddress) {
+    if (!shippingAddressId) {
       return res.status(400).send({
         status: "error",
         message: "Shipping address is required",
       });
     }
-
-    // 1. Server-side validation, price verification, and stock checking
-    let calculatedSubtotal = 0;
-    const orderItems = [];
-
-    for (const item of items) {
-      if (!item.product || !item.quantity) {
-        return res.status(400).send({
-          status: "error",
-          message: "Each order item must contain product and quantity",
-        });
-      }
-
-      const product = await Product.findById(item.product);
-      if (!product) {
-        return res.status(404).send({
-          status: "error",
-          message: `Product with ID ${item.product} not found`,
-        });
-      }
-
-      if (!product.isActive) {
-        return res.status(400).send({
-          status: "error",
-          message: `Product ${product.name} is currently inactive`,
-        });
-      }
-
-      if (product.stock < item.quantity) {
-        return res.status(400).send({
-          status: "error",
-          message: `Insufficient stock for product: ${product.name}. Only ${product.stock} available.`,
-        });
-      }
-
-      const itemPrice = product.discountedPrice || product.basePrice;
-      calculatedSubtotal += itemPrice * item.quantity;
-
-      orderItems.push({
-        product: product._id,
-        name: product.name,
-        image: (product.images && product.images[0]) || "",
-        color: item.color || product.color || "",
-        size: item.size || product.size || "",
-        price: itemPrice,
-        quantity: item.quantity,
+    let cart = await Cart.findOne({ user: userId }).populate("items.product");
+    if (!cart || cart.items.length === 0) {
+      return res.status(400).send({
+        status: "error",
+        message: "Cart is empty",
       });
     }
-
-    const fee = Number(shippingFee) || 0;
-    const taxAmount = Number(tax) || 0;
-    const discountAmount = Number(discount) || 0;
-    const calculatedTotal = calculatedSubtotal + fee + taxAmount - discountAmount;
-
-    // 2. Generate a unique human-readable order number
-    const orderNumber = `NM-${Date.now()}-${Math.floor(1000 + Math.random() * 9000)}`;
-
-    // 3. Create the Order in DB
-    const order = new Order({
-      orderNumber,
+    const subTotal = cart.items.reduce(
+      (sum, item) => sum + item.price * item.quantity,
+      0,
+    );
+    const tax = Math.round(subTotal * 0.1);
+    if (subTotal < 50) {
+      shippingFee = 15;
+    } else {
+      shippingFee = 0;
+    }
+    const total = subTotal + tax + shippingFee;
+    const order = await Order.insertOne({
       user: userId,
-      items: orderItems,
-      shippingAddress,
-      subtotal: calculatedSubtotal,
-      shippingFee: fee,
-      tax: taxAmount,
-      discount: discountAmount,
-      couponCode: couponCode || "",
-      totalAmount: calculatedTotal,
-      paymentMethod: paymentMethod || "card",
-      paymentStatus: "pending",
-      orderStatus: "pending",
+      orderNumber: `ORD-${Date.now().toString().slice(-8)}`,
+      items: cart.items.map((item) => ({
+        product: item.product._id,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        color: item.color,
+        price: item.price,
+        size: item.size,
+      })),
+      shippingAddress: shippingAddressId,
+      subTotal,
+      tax,
+      shippingFee,
+      totalAmount: total,
+      paymentMethod,
     });
-
-    await order.save();
-
-    // 4. Update product inventories
-    for (const item of orderItems) {
-      await Product.findByIdAndUpdate(item.product, {
+    if (!order) {
+      return res.status(500).send({
+        status: "error",
+        message: "Failed to create the order",
+      });
+    }
+    // Clear the cart after order is created and reduce rhe stock
+    for (const item of cart.items) {
+      await Product.findByIdAndUpdate(item.product._id, {
         $inc: { stock: -item.quantity },
       });
     }
-
-    // 5. Clear user's shopping cart
-    await Cart.findOneAndUpdate(
-      { user: userId },
-      { items: [], totalAmount: 0 },
-      { new: true }
-    );
-
+    cart.items = [];
+    cart.totalAmount = 0;
+    await cart.save();
     return res.status(201).send({
       status: "success",
       message: "Order created successfully",
-      data: order,
     });
   } catch (error) {
     console.error("Create order error:", error);
@@ -200,21 +135,13 @@ export const cancelOrder = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user._id;
 
-    const order = await Order.findById(orderId);
+    const order = await Order.findOne({ id: orderId, user: userId });
     if (!order) {
       return res.status(404).send({
         status: "error",
         message: "Order not found",
       });
     }
-
-    if (order.user.toString() !== userId.toString()) {
-      return res.status(403).send({
-        status: "error",
-        message: "You are not authorized to cancel this order",
-      });
-    }
-
     // Check if order can be cancelled
     if (order.orderStatus === "cancelled") {
       return res.status(400).send({

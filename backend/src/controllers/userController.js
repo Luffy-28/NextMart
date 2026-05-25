@@ -210,3 +210,31 @@ export const updateAddress = async (req, res) => {
     });
   }
 };
+
+//delete Address
+export const deleteAddress = async (req, res) => {
+  try {
+    const userId = req.user._id;
+    const addressId = req.params.id;
+    const address = await Address.findOneAndDelete({
+      _id: addressId,
+      user: userId,
+    });
+    if (!address) {
+      return res.status(404).send({
+        status: "error",
+        message: "Address not found",
+      });
+    }
+    return res.status(200).send({
+      status: "success",
+      message: "Address deleted successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status: "error",
+      message: "error deleting address",
+    });
+  }
+};
