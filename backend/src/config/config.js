@@ -35,6 +35,7 @@ export const config = {
     host: process.env.REDIS_HOST,
     port: process.env.REDIS_PORT,
     password: process.env.REDIS_PASSWORD,
+    redishost: process.env.REDIS_HOST,
   },
   otp: {
     expiry: parseInt(process.env.OTP_EXPIRY) || 300,
@@ -44,10 +45,12 @@ export const config = {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS),
   },
-  google:{
+  google: {
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     sessionSecret: process.env.SESSION_SECRET,
-
-  }
+  },
+  stripe: {
+    secretKey: process.env.STRIPE_SECRET_KEY,
+  },
 };
