@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 
 const ORDER_ITEMS = [
-  { id: 1, name: 'Wireless Noise-Cancelling Headphones', color: 'Midnight Black', price: 349, qty: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
-  { id: 2, name: 'Running Shoes Pro X', color: 'Crimson Red / Size 10', price: 129, qty: 2, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+  { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
+  { id: 2, name: 'Running Shoes Pro X', price: 129, quantity: 2, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
 ];
 
 const STEPS = ['Shipping', 'Payment', 'Review'];
@@ -16,13 +16,13 @@ const Checkout = () => {
 
   const [address, setAddress] = useState({
     firstName: '', lastName: '', email: '', phone: '',
-    street: '', city: '', state: '', zip: '', country: 'Australia',
+    street: '', suburb: '', city: '', state: '', postcode: '', country: 'Australia',
   });
   const [payment, setPayment] = useState({
     method: 'card', cardNumber: '', cardName: '', expiry: '', cvv: '',
   });
 
-  const subtotal = ORDER_ITEMS.reduce((s, i) => s + i.price * i.qty, 0);
+  const subtotal = ORDER_ITEMS.reduce((s, i) => s + i.price * i.quantity, 0);
   const shipping = shippingMethod === 'express' ? 14.99 : 0;
   const discount = Math.round(subtotal * 0.15);
   const total = subtotal + shipping - discount;
@@ -95,9 +95,10 @@ const Checkout = () => {
                     { name: 'email', label: 'Email Address', placeholder: 'john@example.com', col: 6, type: 'email' },
                     { name: 'phone', label: 'Phone Number', placeholder: '+61 400 000 000', col: 6 },
                     { name: 'street', label: 'Street Address', placeholder: '123 Main Street, Apt 4', col: 12 },
+                    { name: 'suburb', label: 'Suburb', placeholder: 'Surry Hills', col: 12 },
                     { name: 'city', label: 'City', placeholder: 'Sydney', col: 5 },
                     { name: 'state', label: 'State', placeholder: 'NSW', col: 3 },
-                    { name: 'zip', label: 'Postcode', placeholder: '2000', col: 4 },
+                    { name: 'postcode', label: 'Postcode', placeholder: '2000', col: 4 },
                   ].map(f => (
                     <div className={`col-${f.col}`} key={f.name}>
                       <label className="nex-form-label">{f.label}</label>
@@ -250,7 +251,8 @@ const Checkout = () => {
                       <p className="nex-text-light fw-bold mb-1">{address.firstName || 'John'} {address.lastName || 'Smith'}</p>
                       <p className="nex-text-muted mb-1" style={{ fontSize: '0.88rem', lineHeight: 1.6 }}>
                         {address.street || '123 Main St'}<br />
-                        {address.city || 'Sydney'}, {address.state || 'NSW'} {address.zip || '2000'}<br />
+                        {address.suburb && <>{address.suburb}<br /></>}
+                        {address.city || 'Sydney'}, {address.state || 'NSW'} {address.postcode || '2000'}<br />
                         {address.country}
                       </p>
                       <p className="nex-text-muted mb-0" style={{ fontSize: '0.82rem' }}>{address.email || 'john@example.com'}</p>
@@ -283,10 +285,9 @@ const Checkout = () => {
                       </div>
                       <div className="flex-grow-1">
                         <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '0.92rem' }}>{item.name}</p>
-                        <p className="nex-text-muted mb-0" style={{ fontSize: '0.8rem' }}>{item.color}</p>
-                        <p className="nex-text-muted mb-0" style={{ fontSize: '0.78rem' }}>Qty: {item.qty} × ${item.price}</p>
+                        <p className="nex-text-muted mb-0" style={{ fontSize: '0.78rem' }}>Qty: {item.quantity} × ${item.price}</p>
                       </div>
-                      <span className="nex-text-light fw-bold">${(item.price * item.qty).toFixed(2)}</span>
+                      <span className="nex-text-light fw-bold">${(item.price * item.quantity).toFixed(2)}</span>
                     </div>
                   ))}
                 </div>
@@ -321,9 +322,9 @@ const Checkout = () => {
                     </div>
                     <div className="flex-grow-1 overflow-hidden">
                       <p className="nex-text-light fw-bold mb-0" style={{ fontSize: '0.82rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{item.name}</p>
-                      <p className="nex-text-muted mb-0" style={{ fontSize: '0.75rem' }}>Qty: {item.qty}</p>
+                      <p className="nex-text-muted mb-0" style={{ fontSize: '0.75rem' }}>Qty: {item.quantity}</p>
                     </div>
-                    <span className="nex-text-light fw-bold" style={{ fontSize: '0.88rem', flexShrink: 0 }}>${item.price * item.qty}</span>
+                    <span className="nex-text-light fw-bold" style={{ fontSize: '0.88rem', flexShrink: 0 }}>${item.price * item.quantity}</span>
                   </div>
                 ))}
               </div>

@@ -66,7 +66,12 @@ const ProductCard = ({ product }) => {
           <h6 className="nex-product-title">{product.name}</h6>
         </Link>
         <div className="nex-product-footer">
-          <span className="nex-price">${product.price}</span>
+          <div>
+            <span className="nex-price">${product.basePrice}</span>
+            {product.discountedPrice && (
+              <span className="nex-text-muted ms-2 text-decoration-line-through" style={{ fontSize: '0.78rem' }}>${product.discountedPrice}</span>
+            )}
+          </div>
           <button className="nex-cart-btn" aria-label="Add to cart">
             <i className="bi bi-cart-plus" />
           </button>

@@ -3,44 +3,46 @@ import { Link } from 'react-router-dom';
 
 const ORDERS = [
   {
-    id: 'NX-2025-00412', date: 'Apr 28, 2025', status: 'Delivered', total: 607,
+    orderNumber: 'NX-2025-00412', createdAt: 'Apr 28, 2025', orderStatus: 'delivered', totalAmount: 607,
     items: [
-      { name: 'Wireless Headphones', qty: 1, price: 349, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
-      { name: 'Running Shoes Pro X', qty: 2, price: 129, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+      { name: 'Wireless Headphones', quantity: 1, price: 349, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
+      { name: 'Running Shoes Pro X', quantity: 2, price: 129, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
     ],
     address: 'Sydney, NSW 2000', tracking: 'AUS1234567890',
   },
   {
-    id: 'NX-2025-00388', date: 'Apr 10, 2025', status: 'Shipped', total: 149,
+    orderNumber: 'NX-2025-00388', createdAt: 'Apr 10, 2025', orderStatus: 'shipped', totalAmount: 149,
     items: [
-      { name: 'Ergonomic Laptop Stand', qty: 1, price: 89, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
-      { name: 'Ceramic Coffee Mug Set', qty: 2, price: 30, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80' },
+      { name: 'Ergonomic Laptop Stand', quantity: 1, price: 89, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
+      { name: 'Ceramic Coffee Mug Set', quantity: 2, price: 30, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80' },
     ],
     address: 'Melbourne, VIC 3000', tracking: 'AUS9876543210',
   },
   {
-    id: 'NX-2025-00347', date: 'Mar 19, 2025', status: 'Processing', total: 64,
-    items: [{ name: 'Linen Throw Blanket', qty: 1, price: 64, image: 'https://images.unsplash.com/photo-1580828369019-2220f1885f8f?w=500&q=80' }],
+    orderNumber: 'NX-2025-00347', createdAt: 'Mar 19, 2025', orderStatus: 'processing', totalAmount: 64,
+    items: [{ name: 'Linen Throw Blanket', quantity: 1, price: 64, image: 'https://images.unsplash.com/photo-1580828369019-2220f1885f8f?w=500&q=80' }],
     address: 'Brisbane, QLD 4000', tracking: null,
   },
   {
-    id: 'NX-2025-00315', date: 'Mar 05, 2025', status: 'Refunded', total: 199,
-    items: [{ name: 'Mechanical Keyboard Pro', qty: 1, price: 199, image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&q=80' }],
+    orderNumber: 'NX-2025-00315', createdAt: 'Mar 05, 2025', orderStatus: 'returned', totalAmount: 199,
+    items: [{ name: 'Mechanical Keyboard Pro', quantity: 1, price: 199, image: 'https://images.unsplash.com/photo-1595225476474-87563907a212?w=500&q=80' }],
     address: 'Adelaide, SA 5000', tracking: 'AUS4455667788',
   },
   {
-    id: 'NX-2025-00301', date: 'Feb 28, 2025', status: 'Cancelled', total: 39,
-    items: [{ name: 'Yoga Mat Premium', qty: 1, price: 39, image: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=500&q=80' }],
+    orderNumber: 'NX-2025-00301', createdAt: 'Feb 28, 2025', orderStatus: 'cancelled', totalAmount: 39,
+    items: [{ name: 'Yoga Mat Premium', quantity: 1, price: 39, image: 'https://images.unsplash.com/photo-1601925260368-ae2f83cf8b7f?w=500&q=80' }],
     address: 'Perth, WA 6000', tracking: null,
   },
 ];
 
 const STATUS_CONFIG = {
-  Delivered:  { cls: 'nex-status-green',  icon: 'bi-check-circle-fill' },
-  Shipped:    { cls: 'nex-status-blue',   icon: 'bi-truck' },
-  Processing: { cls: 'nex-status-yellow', icon: 'bi-hourglass-split' },
-  Refunded:   { cls: 'nex-status-gray',   icon: 'bi-arrow-counterclockwise' },
-  Cancelled:  { cls: 'nex-status-red',    icon: 'bi-x-circle-fill' },
+  delivered:  { cls: 'nex-status-green',  icon: 'bi-check-circle-fill',      label: 'Delivered' },
+  shipped:    { cls: 'nex-status-blue',   icon: 'bi-truck',                  label: 'Shipped' },
+  processing: { cls: 'nex-status-yellow', icon: 'bi-hourglass-split',        label: 'Processing' },
+  confirmed:  { cls: 'nex-status-blue',   icon: 'bi-check-circle',           label: 'Confirmed' },
+  pending:    { cls: 'nex-status-yellow', icon: 'bi-clock',                  label: 'Pending' },
+  returned:   { cls: 'nex-status-gray',   icon: 'bi-arrow-counterclockwise', label: 'Returned' },
+  cancelled:  { cls: 'nex-status-red',    icon: 'bi-x-circle-fill',          label: 'Cancelled' },
 };
 
 const OrderHistory = () => {
@@ -48,14 +50,14 @@ const OrderHistory = () => {
   const [search, setSearch] = useState('');
   const [expanded, setExpanded] = useState(null);
 
-  const statuses = ['All', 'Delivered', 'Shipped', 'Processing', 'Refunded', 'Cancelled'];
+  const statuses = ['All', 'delivered', 'shipped', 'processing', 'confirmed', 'pending', 'returned', 'cancelled'];
 
   const filtered = ORDERS
-    .filter(o => filter === 'All' || o.status === filter)
-    .filter(o => !search || o.id.toLowerCase().includes(search.toLowerCase()) || o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase())));
+    .filter(o => filter === 'All' || o.orderStatus === filter)
+    .filter(o => !search || o.orderNumber.toLowerCase().includes(search.toLowerCase()) || o.items.some(i => i.name.toLowerCase().includes(search.toLowerCase())));
 
-  const totalSpent = ORDERS.filter(o => o.status === 'Delivered' || o.status === 'Shipped').reduce((s, o) => s + o.total, 0);
-  const deliveredCount = ORDERS.filter(o => o.status === 'Delivered').length;
+  const totalSpent = ORDERS.filter(o => o.orderStatus === 'delivered' || o.orderStatus === 'shipped').reduce((s, o) => s + o.totalAmount, 0);
+  const deliveredCount = ORDERS.filter(o => o.orderStatus === 'delivered').length;
 
   return (
     <div style={{ background: 'var(--nex-bg)', minHeight: '100vh' }}>
@@ -86,7 +88,7 @@ const OrderHistory = () => {
             { label: 'Total Orders', value: ORDERS.length, icon: 'bi-box-seam', color: 'var(--nex-purple)' },
             { label: 'Total Spent', value: `$${totalSpent}`, icon: 'bi-wallet2', color: 'var(--nex-cyan)' },
             { label: 'Delivered', value: deliveredCount, icon: 'bi-check-circle', color: '#34d399' },
-            { label: 'Refunded', value: ORDERS.filter(o => o.status === 'Refunded').length, icon: 'bi-arrow-counterclockwise', color: 'var(--nex-text-muted)' },
+            { label: 'Returned', value: ORDERS.filter(o => o.orderStatus === 'returned').length, icon: 'bi-arrow-counterclockwise', color: 'var(--nex-text-muted)' },
           ].map((stat, i) => (
             <div className="col-6 col-lg-3" key={i}>
               <div className="nex-glass-card p-4 d-flex align-items-center gap-3">
@@ -115,7 +117,7 @@ const OrderHistory = () => {
               <button key={s} onClick={() => setFilter(s)}
                 className={filter === s ? 'nex-btn-primary' : 'nex-btn-outline'}
                 style={{ padding: '8px 18px', fontSize: '0.82rem' }}>
-                {s}
+                {s === 'All' ? 'All' : STATUS_CONFIG[s]?.label ?? s}
               </button>
             ))}
           </div>
@@ -132,27 +134,27 @@ const OrderHistory = () => {
         ) : (
           <div className="d-flex flex-column gap-4">
             {filtered.map(order => {
-              const cfg = STATUS_CONFIG[order.status];
-              const isOpen = expanded === order.id;
+              const cfg = STATUS_CONFIG[order.orderStatus];
+              const isOpen = expanded === order.orderNumber;
               return (
-                <div key={order.id} className="nex-glass-card overflow-hidden" style={{ transition: 'border-color 0.2s' }}
+                <div key={order.orderNumber} className="nex-glass-card overflow-hidden" style={{ transition: 'border-color 0.2s' }}
                   onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)'}
                   onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--nex-border)'}>
 
                   {/* Header row */}
                   <div className="d-flex align-items-center justify-content-between flex-wrap gap-3 p-4 p-md-5"
                     style={{ cursor: 'pointer', borderBottom: isOpen ? '1px solid var(--nex-border)' : 'none' }}
-                    onClick={() => setExpanded(prev => prev === order.id ? null : order.id)}>
+                    onClick={() => setExpanded(prev => prev === order.orderNumber ? null : order.orderNumber)}>
 
                     <div className="d-flex align-items-center gap-4 flex-wrap">
                       <div>
-                        <p className="nex-label mb-1">Order ID</p>
-                        <p className="nex-text-light fw-bold mb-0" style={{ fontSize: '0.95rem', fontFamily: 'monospace' }}>{order.id}</p>
+                        <p className="nex-label mb-1">Order Number</p>
+                        <p className="nex-text-light fw-bold mb-0" style={{ fontSize: '0.95rem', fontFamily: 'monospace' }}>{order.orderNumber}</p>
                       </div>
                       <div style={{ width: 1, height: 36, background: 'var(--nex-border)' }} className="d-none d-sm-block" />
                       <div>
                         <p className="nex-label mb-1">Date</p>
-                        <p className="nex-text-muted mb-0" style={{ fontSize: '0.88rem' }}>{order.date}</p>
+                        <p className="nex-text-muted mb-0" style={{ fontSize: '0.88rem' }}>{order.createdAt}</p>
                       </div>
                       <div style={{ width: 1, height: 36, background: 'var(--nex-border)' }} className="d-none d-md-block" />
                       <div className="d-none d-md-block" style={{ maxWidth: 260 }}>
@@ -165,12 +167,12 @@ const OrderHistory = () => {
 
                     <div className="d-flex align-items-center gap-4 flex-wrap">
                       <span className={`nex-status ${cfg.cls}`}>
-                        <i className={`bi ${cfg.icon}`} />{order.status}
+                        <i className={`bi ${cfg.icon}`} />{cfg.label}
                       </span>
                       <div className="text-end">
                         <p className="nex-label mb-1">Total</p>
-                        <p className={`fw-bold mb-0 ${order.status === 'Refunded' ? 'nex-text-muted text-decoration-line-through' : 'nex-gradient-text'}`} style={{ fontSize: '1.1rem' }}>
-                          ${order.total}
+                        <p className={`fw-bold mb-0 ${order.orderStatus === 'returned' ? 'nex-text-muted text-decoration-line-through' : 'nex-gradient-text'}`} style={{ fontSize: '1.1rem' }}>
+                          ${order.totalAmount}
                         </p>
                       </div>
                       <div className="d-flex align-items-center justify-content-center" style={{ width: 36, height: 36, borderRadius: '50%', border: '1px solid var(--nex-border)', background: 'var(--nex-bg-card)', transition: 'transform 0.3s', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)' }}>
@@ -193,9 +195,9 @@ const OrderHistory = () => {
                                 </div>
                                 <div className="flex-grow-1">
                                   <p className="nex-text-light fw-bold mb-0" style={{ fontSize: '0.9rem' }}>{item.name}</p>
-                                  <p className="nex-text-muted mb-0" style={{ fontSize: '0.78rem' }}>Qty: {item.qty} × ${item.price}</p>
+                                  <p className="nex-text-muted mb-0" style={{ fontSize: '0.78rem' }}>Qty: {item.quantity} × ${item.price}</p>
                                 </div>
-                                <span className="nex-gradient-text fw-bold">${item.qty * item.price}</span>
+                                <span className="nex-gradient-text fw-bold">${item.quantity * item.price}</span>
                               </div>
                             ))}
                           </div>
@@ -225,22 +227,22 @@ const OrderHistory = () => {
                             <div className="nex-glass-card p-4">
                               <div className="d-flex justify-content-between mb-2">
                                 <span className="nex-text-muted" style={{ fontSize: '0.85rem' }}>Subtotal</span>
-                                <span className="nex-text-light fw-bold" style={{ fontSize: '0.85rem' }}>${order.total}</span>
+                                <span className="nex-text-light fw-bold" style={{ fontSize: '0.85rem' }}>${order.totalAmount}</span>
                               </div>
                               <div className="d-flex justify-content-between mb-3">
                                 <span className="nex-text-muted" style={{ fontSize: '0.85rem' }}>Shipping</span>
                                 <span style={{ color: '#34d399', fontWeight: 700, fontSize: '0.85rem' }}>FREE</span>
                               </div>
-                              {order.status === 'Refunded' && (
+                              {order.orderStatus === 'returned' && (
                                 <div className="d-flex justify-content-between mb-3 px-3 py-2 rounded" style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                                  <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.85rem' }}>Refund Applied</span>
-                                  <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.85rem' }}>−${order.total}</span>
+                                  <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.85rem' }}>Return Applied</span>
+                                  <span style={{ color: '#f87171', fontWeight: 700, fontSize: '0.85rem' }}>−${order.totalAmount}</span>
                                 </div>
                               )}
                               <div className="d-flex justify-content-between pt-3" style={{ borderTop: '1px solid var(--nex-border)' }}>
                                 <span className="nex-text-light fw-bold">Total</span>
-                                <span className={`fw-bold ${order.status === 'Refunded' ? 'nex-text-muted' : 'nex-gradient-text'}`} style={{ fontSize: '1.1rem' }}>
-                                  ${order.status === 'Refunded' ? '0' : order.total}
+                                <span className={`fw-bold ${order.orderStatus === 'returned' ? 'nex-text-muted' : 'nex-gradient-text'}`} style={{ fontSize: '1.1rem' }}>
+                                  ${order.orderStatus === 'returned' ? '0' : order.totalAmount}
                                 </span>
                               </div>
                             </div>
@@ -250,7 +252,7 @@ const OrderHistory = () => {
 
                       {/* Actions */}
                       <div className="d-flex flex-wrap gap-3 mt-5 pt-4" style={{ borderTop: '1px solid var(--nex-border)' }}>
-                        {order.status === 'Delivered' && (
+                        {order.orderStatus === 'delivered' && (
                           <>
                             <button className="nex-btn-primary" style={{ padding: '10px 22px', fontSize: '0.84rem' }}>
                               <i className="bi bi-bag-plus me-2" />Buy Again
@@ -263,22 +265,22 @@ const OrderHistory = () => {
                             </button>
                           </>
                         )}
-                        {order.status === 'Shipped' && (
+                        {order.orderStatus === 'shipped' && (
                           <button className="nex-btn-primary" style={{ padding: '10px 22px', fontSize: '0.84rem' }}>
                             <i className="bi bi-geo-alt me-2" />Track Package
                           </button>
                         )}
-                        {order.status === 'Processing' && (
+                        {(order.orderStatus === 'processing' || order.orderStatus === 'confirmed' || order.orderStatus === 'pending') && (
                           <button className="nex-btn-outline" style={{ padding: '10px 22px', fontSize: '0.84rem', borderColor: 'rgba(239,68,68,0.4)', color: '#f87171' }}>
                             <i className="bi bi-x-circle me-2" />Cancel Order
                           </button>
                         )}
-                        {(order.status === 'Cancelled' || order.status === 'Refunded') && (
+                        {(order.orderStatus === 'cancelled' || order.orderStatus === 'returned') && (
                           <Link to="/products" className="nex-btn-primary" style={{ padding: '10px 22px', fontSize: '0.84rem' }}>
                             <i className="bi bi-grid me-2" />Shop Similar
                           </Link>
                         )}
-                        <button className={`nex-btn-outline ${order.status === 'Delivered' ? '' : 'ms-auto'}`} style={{ padding: '10px 22px', fontSize: '0.84rem' }}>
+                        <button className={`nex-btn-outline ${order.orderStatus === 'delivered' ? '' : 'ms-auto'}`} style={{ padding: '10px 22px', fontSize: '0.84rem' }}>
                           <i className="bi bi-file-text me-2" />View Invoice
                         </button>
                       </div>

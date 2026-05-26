@@ -2,16 +2,16 @@ import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 
 const RELATED = [
-  { id: 2, name: 'Running Shoes Pro X', price: 129, rating: 4, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
-  { id: 3, name: 'Smart Desk Lamp', price: 49, rating: 4, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80' },
-  { id: 4, name: 'Ergonomic Laptop Stand', price: 89, rating: 5, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
-  { id: 7, name: 'Vitamin C Serum', price: 32, rating: 5, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80' },
+  { id: 2, name: 'Running Shoes Pro X', basePrice: 129, rating: 4, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+  { id: 3, name: 'Smart Desk Lamp', basePrice: 49, rating: 4, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80' },
+  { id: 4, name: 'Ergonomic Laptop Stand', basePrice: 89, rating: 5, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
+  { id: 7, name: 'Vitamin C Serum', basePrice: 32, rating: 5, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80' },
 ];
 
 const REVIEWS = [
-  { id: 1, user: 'Sarah M.', rating: 5, date: 'Apr 12, 2025', text: 'Absolutely love these headphones! The noise cancelling is incredible — I can focus for hours without any distractions. Worth every penny.' },
-  { id: 2, user: 'James T.', rating: 4, date: 'Mar 28, 2025', text: 'Great sound quality and very comfortable for long sessions. Battery life is excellent. Took off one star because the carrying case feels a bit flimsy.' },
-  { id: 3, user: 'Priya K.', rating: 5, date: 'Feb 14, 2025', text: "Best headphones I've owned. The build quality is premium and the bass response is perfect. Highly recommend!" },
+  { id: 1, user: 'Sarah M.', rating: 5, createdAt: 'Apr 12, 2025', comment: 'Absolutely love these headphones! The noise cancelling is incredible — I can focus for hours without any distractions. Worth every penny.' },
+  { id: 2, user: 'James T.', rating: 4, createdAt: 'Mar 28, 2025', comment: 'Great sound quality and very comfortable for long sessions. Battery life is excellent. Took off one star because the carrying case feels a bit flimsy.' },
+  { id: 3, user: 'Priya K.', rating: 5, createdAt: 'Feb 14, 2025', comment: "Best headphones I've owned. The build quality is premium and the bass response is perfect. Highly recommend!" },
 ];
 
 const IMAGES = [
@@ -21,13 +21,8 @@ const IMAGES = [
   'https://images.unsplash.com/photo-1546435770-a3e426fa99e5?w=800&q=80',
 ];
 
-const COLORS = [
-  { name: 'Midnight Black', hex: '#1F2937' },
-  { name: 'Pearl White', hex: '#F8FAFC' },
-  { name: 'Navy Blue', hex: '#1E3A8A' },
-];
-
-const SIZES = ['Standard', 'Pro (Over-ear)', 'Compact (On-ear)'];
+const PRODUCT_COLOR = 'Midnight Black';
+const PRODUCT_SIZE = 'Standard';
 
 const StarRating = ({ rating, size = 14 }) => (
   <span style={{ fontSize: size }}>
@@ -54,8 +49,6 @@ const ProductDetails = () => {
   const [selectedTab, setSelectedTab] = useState('description');
   const [addedToCart, setAddedToCart] = useState(false);
   const [wishlist, setWishlist] = useState(false);
-  const [selectedColor, setSelectedColor] = useState(COLORS[0].name);
-  const [selectedSize, setSelectedSize] = useState(SIZES[0]);
 
   const handleAddToCart = () => {
     setAddedToCart(true);
@@ -114,7 +107,6 @@ const ProductDetails = () => {
             <div className="col-lg-6">
               <div className="d-flex align-items-center gap-2 mb-3">
                 <span className="nex-status nex-status-blue">Electronics</span>
-                <span className="nex-text-muted" style={{ fontSize: '0.78rem' }}>SKU: WH-1001-BLK</span>
               </div>
 
               <h1 className="nex-text-light fw-bold mb-3" style={{ fontSize: '1.85rem', lineHeight: 1.2 }}>
@@ -138,38 +130,18 @@ const ProductDetails = () => {
                 Experience studio-quality sound wherever you go. Industry-leading active noise cancellation, 30-hour battery life, and premium drivers for crystal-clear highs and deep, rich bass.
               </p>
 
-              {/* Color selector */}
-              <div className="mb-4">
-                <p className="nex-form-label mb-3">Color: <span className="nex-text-muted" style={{ textTransform: 'none', fontWeight: 400 }}>{selectedColor}</span></p>
-                <div className="d-flex gap-3">
-                  {COLORS.map(c => (
-                    <div key={c.name} onClick={() => setSelectedColor(c.name)}
-                      style={{
-                        width: 42, height: 42, borderRadius: '50%', cursor: 'pointer', padding: 3,
-                        border: `2px solid ${selectedColor === c.name ? 'var(--nex-purple)' : 'transparent'}`,
-                        transition: 'border-color 0.2s'
-                      }}>
-                      <div style={{ width: '100%', height: '100%', borderRadius: '50%', background: c.hex, border: '1px solid rgba(255,255,255,0.15)' }} />
-                    </div>
-                  ))}
+              {/* Color & size info */}
+              <div className="mb-5 pb-4 d-flex gap-4 flex-wrap" style={{ borderBottom: '1px solid var(--nex-border)' }}>
+                <div>
+                  <p className="nex-form-label mb-1">Color</p>
+                  <div className="d-flex align-items-center gap-2">
+                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1F2937', border: '1px solid rgba(255,255,255,0.2)' }} />
+                    <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{PRODUCT_COLOR}</span>
+                  </div>
                 </div>
-              </div>
-
-              {/* Size selector */}
-              <div className="mb-5 pb-4" style={{ borderBottom: '1px solid var(--nex-border)' }}>
-                <p className="nex-form-label mb-3">Size Variant</p>
-                <div className="d-flex flex-wrap gap-2">
-                  {SIZES.map(size => (
-                    <button key={size} onClick={() => setSelectedSize(size)}
-                      style={{
-                        height: 42, padding: '0 18px', border: '1px solid', borderRadius: 8, cursor: 'pointer', fontSize: '0.84rem', fontWeight: 600, transition: 'all 0.2s',
-                        borderColor: selectedSize === size ? 'var(--nex-purple)' : 'var(--nex-border)',
-                        background: selectedSize === size ? 'rgba(139,92,246,0.12)' : 'transparent',
-                        color: selectedSize === size ? 'var(--nex-purple)' : 'var(--nex-text-muted)',
-                      }}>
-                      {size}
-                    </button>
-                  ))}
+                <div>
+                  <p className="nex-form-label mb-1">Size</p>
+                  <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{PRODUCT_SIZE}</span>
                 </div>
               </div>
 
@@ -293,9 +265,9 @@ const ProductDetails = () => {
                           <StarRating rating={review.rating} size={13} />
                         </div>
                       </div>
-                      <span className="nex-text-muted" style={{ fontSize: '0.8rem' }}>{review.date}</span>
+                      <span className="nex-text-muted" style={{ fontSize: '0.8rem' }}>{review.createdAt}</span>
                     </div>
-                    <p className="nex-text-muted mb-0" style={{ lineHeight: 1.7, fontSize: '0.9rem' }}>{review.text}</p>
+                    <p className="nex-text-muted mb-0" style={{ lineHeight: 1.7, fontSize: '0.9rem' }}>{review.comment}</p>
                   </div>
                 ))}
               </div>
@@ -324,7 +296,7 @@ const ProductDetails = () => {
                   <div className="p-3">
                     <p className="nex-text-light fw-semibold mb-1" style={{ fontSize: '0.88rem' }}>{p.name}</p>
                     <StarRating rating={p.rating} size={12} />
-                    <p className="nex-gradient-text fw-bold mt-2 mb-0" style={{ fontSize: '1.05rem' }}>${p.price}</p>
+                    <p className="nex-gradient-text fw-bold mt-2 mb-0" style={{ fontSize: '1.05rem' }}>${p.basePrice}</p>
                   </div>
                 </Link>
               </div>

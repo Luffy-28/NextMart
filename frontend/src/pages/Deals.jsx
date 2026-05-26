@@ -3,14 +3,14 @@ import { Link } from 'react-router-dom';
 import Reveal from '../components/ui/Reveal';
 
 const DEALS = [
-  { id: 101, name: 'Sony WH-1000XM5 Headphones', originalPrice: 399, price: 299, discount: '25% OFF', badge: 'Audio', endHours: 48, image: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&q=80', color: '#8B5CF6' },
-  { id: 102, name: 'Samsung 65" 4K OLED TV', originalPrice: 1899, price: 1499, discount: '$400 OFF', badge: 'Electronics', endHours: 8, image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&q=80', color: '#EF4444', urgent: true },
-  { id: 103, name: 'Apple Watch Series 9', originalPrice: 399, price: 349, discount: '12% OFF', badge: 'Wearables', endHours: 120, image: 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&q=80', color: '#06B6D4' },
-  { id: 104, name: 'Dyson V15 Detect Vacuum', originalPrice: 749, price: 599, discount: '$150 OFF', badge: 'Home', endHours: 12, image: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&q=80', color: '#F472B6', urgent: true },
-  { id: 105, name: 'Nike Air Max 2024', originalPrice: 189, price: 129, discount: '32% OFF', badge: 'Sports', endHours: 72, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80', color: '#34d399' },
-  { id: 106, name: 'Kindle Paperwhite 5', originalPrice: 149, price: 99, discount: '$50 OFF', badge: 'Books', endHours: 96, image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80', color: '#a78bfa' },
-  { id: 107, name: 'Vitamin C Serum Bundle', originalPrice: 120, price: 79, discount: '34% OFF', badge: 'Beauty', endHours: 36, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&q=80', color: '#F472B6' },
-  { id: 108, name: 'Ergonomic Gaming Chair', originalPrice: 399, price: 279, discount: '30% OFF', badge: 'Furniture', endHours: 60, image: 'https://images.unsplash.com/photo-1505797149-43b0ad7664a3?w=600&q=80', color: '#fbbf24' },
+  { id: 101, name: 'Sony WH-1000XM5 Headphones', basePrice: 399, discountedPrice: 299, discount: '25% OFF', badge: 'Audio', endHours: 48, image: 'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=600&q=80', accentColor: '#8B5CF6' },
+  { id: 102, name: 'Samsung 65" 4K OLED TV', basePrice: 1899, discountedPrice: 1499, discount: '$400 OFF', badge: 'Electronics', endHours: 8, image: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&q=80', accentColor: '#EF4444', urgent: true },
+  { id: 103, name: 'Apple Watch Series 9', basePrice: 399, discountedPrice: 349, discount: '12% OFF', badge: 'Wearables', endHours: 120, image: 'https://images.unsplash.com/photo-1434493789847-2f02dc6ca35d?w=600&q=80', accentColor: '#06B6D4' },
+  { id: 104, name: 'Dyson V15 Detect Vacuum', basePrice: 749, discountedPrice: 599, discount: '$150 OFF', badge: 'Home', endHours: 12, image: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=600&q=80', accentColor: '#F472B6', urgent: true },
+  { id: 105, name: 'Nike Air Max 2024', basePrice: 189, discountedPrice: 129, discount: '32% OFF', badge: 'Sports', endHours: 72, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=80', accentColor: '#34d399' },
+  { id: 106, name: 'Kindle Paperwhite 5', basePrice: 149, discountedPrice: 99, discount: '$50 OFF', badge: 'Books', endHours: 96, image: 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=600&q=80', accentColor: '#a78bfa' },
+  { id: 107, name: 'Vitamin C Serum Bundle', basePrice: 120, discountedPrice: 79, discount: '34% OFF', badge: 'Beauty', endHours: 36, image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=600&q=80', accentColor: '#F472B6' },
+  { id: 108, name: 'Ergonomic Gaming Chair', basePrice: 399, discountedPrice: 279, discount: '30% OFF', badge: 'Furniture', endHours: 60, image: 'https://images.unsplash.com/photo-1505797149-43b0ad7664a3?w=600&q=80', accentColor: '#fbbf24' },
 ];
 
 const FILTERS = ['All', 'Electronics', 'Audio', 'Sports', 'Home', 'Beauty', 'Wearables'];
@@ -125,7 +125,7 @@ const Deals = () => {
 
                     {/* Discount badge */}
                     <span className="position-absolute"
-                      style={{ top: 12, left: 12, background: deal.urgent ? '#EF4444' : deal.color, color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '4px 12px', borderRadius: 20, letterSpacing: '0.05em' }}>
+                      style={{ top: 12, left: 12, background: deal.urgent ? '#EF4444' : deal.accentColor, color: 'white', fontSize: '0.7rem', fontWeight: 700, padding: '4px 12px', borderRadius: 20, letterSpacing: '0.05em' }}>
                       {deal.discount}
                     </span>
 
@@ -152,7 +152,7 @@ const Deals = () => {
                       </span>
                       <div className="ms-auto" style={{ flex: 1 }}>
                         <div style={{ height: 3, background: 'rgba(255,255,255,0.06)', borderRadius: 2, overflow: 'hidden' }}>
-                          <div style={{ height: '100%', width: `${Math.min(100, (1 - deal.endHours / 168) * 100)}%`, background: deal.urgent ? '#EF4444' : deal.color, borderRadius: 2 }} />
+                          <div style={{ height: '100%', width: `${Math.min(100, (1 - deal.endHours / 168) * 100)}%`, background: deal.urgent ? '#EF4444' : deal.accentColor, borderRadius: 2 }} />
                         </div>
                       </div>
                     </div>
@@ -163,10 +163,10 @@ const Deals = () => {
 
                     <div className="d-flex align-items-end justify-content-between mt-auto pt-3" style={{ borderTop: '1px solid var(--nex-border)' }}>
                       <div>
-                        <p className="nex-text-muted mb-0 text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${deal.originalPrice}</p>
-                        <p className="nex-text-light fw-bold mb-0" style={{ fontSize: '1.5rem', lineHeight: 1.1 }}>${deal.price}</p>
+                        <p className="nex-text-muted mb-0 text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${deal.basePrice}</p>
+                        <p className="nex-text-light fw-bold mb-0" style={{ fontSize: '1.5rem', lineHeight: 1.1 }}>${deal.discountedPrice}</p>
                         <p className="mb-0 mt-1" style={{ color: '#34d399', fontSize: '0.72rem', fontWeight: 700 }}>
-                          You save ${deal.originalPrice - deal.price}
+                          You save ${deal.basePrice - deal.discountedPrice}
                         </p>
                       </div>
                       <button onClick={() => handleAdd(deal.id)}

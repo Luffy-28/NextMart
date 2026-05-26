@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const INITIAL_ITEMS = [
-  { id: 1, name: 'Wireless Noise-Cancelling Headphones', category: 'Electronics', color: 'Midnight Black', price: 349, qty: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
-  { id: 2, name: 'Running Shoes Pro X', category: 'Sports', color: 'Crimson Red / Size 10', price: 129, qty: 2, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
-  { id: 3, name: 'Ergonomic Laptop Stand', category: 'Electronics', color: 'Silver', price: 89, qty: 1, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
+  { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
+  { id: 2, name: 'Running Shoes Pro X', price: 129, quantity: 2, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+  { id: 3, name: 'Ergonomic Laptop Stand', price: 89, quantity: 1, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
 ];
 
 const Cart = () => {
@@ -13,10 +13,10 @@ const Cart = () => {
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
 
-  const updateQty = (id, delta) => setItems(prev => prev.map(item => item.id === id ? { ...item, qty: Math.max(1, item.qty + delta) } : item));
+  const updateQty = (id, delta) => setItems(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item));
   const removeItem = (id) => setItems(prev => prev.filter(item => item.id !== id));
 
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.qty, 0);
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const shipping = subtotal >= 1000 ? 0 : 9.99;
   const discount = appliedCoupon ? Math.round(subtotal * 0.15) : 0;
   const total = subtotal + shipping - discount;
@@ -79,19 +79,14 @@ const Cart = () => {
                     </Link>
 
                     <div className="flex-grow-1">
-                      <span className="nex-status nex-status-blue mb-2 d-inline-flex" style={{ fontSize: '0.68rem' }}>{item.category}</span>
                       <Link to={`/products/${item.id}`} className="text-decoration-none d-block">
                         <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '0.95rem' }}>{item.name}</p>
                       </Link>
-                      <div className="d-flex align-items-center gap-2">
-                        <span style={{ width: 10, height: 10, borderRadius: '50%', background: item.color.includes('Black') ? '#1F2937' : item.color.includes('Red') ? '#DC2626' : '#94A3B8', display: 'inline-block', border: '1px solid rgba(255,255,255,0.2)' }} />
-                        <span className="nex-text-muted" style={{ fontSize: '0.82rem' }}>{item.color}</span>
-                      </div>
                     </div>
 
                     <div className="nex-qty">
                       <button className="nex-qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
-                      <span className="nex-qty-num">{item.qty}</span>
+                      <span className="nex-qty-num">{item.quantity}</span>
                       <button className="nex-qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
                     </div>
 
@@ -102,7 +97,7 @@ const Cart = () => {
 
                     <div className="text-md-end" style={{ minWidth: 90 }}>
                       <p className="nex-text-muted mb-0" style={{ fontSize: '0.75rem' }}>Total</p>
-                      <p className="nex-gradient-text fw-bold mb-0" style={{ fontSize: '1.1rem' }}>${(item.price * item.qty).toFixed(2)}</p>
+                      <p className="nex-gradient-text fw-bold mb-0" style={{ fontSize: '1.1rem' }}>${(item.price * item.quantity).toFixed(2)}</p>
                     </div>
 
                     <button onClick={() => removeItem(item.id)}
@@ -161,7 +156,7 @@ const Cart = () => {
               <h5 className="nex-text-light fw-bold mb-4 pb-3" style={{ borderBottom: '1px solid var(--nex-border)', fontSize: '1.1rem' }}>Order Summary</h5>
 
               <div className="nex-summary-row">
-                <span className="nex-text-muted">Subtotal ({items.reduce((s, i) => s + i.qty, 0)} items)</span>
+                <span className="nex-text-muted">Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
                 <span className="nex-text-light fw-bold">${subtotal.toFixed(2)}</span>
               </div>
               <div className="nex-summary-row">

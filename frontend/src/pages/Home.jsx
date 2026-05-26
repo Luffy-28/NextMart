@@ -20,14 +20,14 @@ const Home = () => {
   ];
 
   const trending = [
-    { id: 1, name: 'Premium Wireless Headphones', price: 249.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80', rating: 5, badge: 'Hot' },
-    { id: 2, name: 'Smart Watch Series 7', price: 399.00, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80', rating: 4, badge: 'Trending' },
-    { id: 3, name: 'Minimalist Leather Wallet', price: 45.00, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&q=80', rating: 5 },
-    { id: 4, name: 'Ergonomic Office Chair', price: 189.50, image: 'https://images.unsplash.com/photo-1505797149-43b0ad7664a3?w=600&q=80', rating: 4 },
-    { id: 5, name: 'Mechanical Keyboard RGB', price: 120.00, image: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=600&q=80', rating: 5, badge: 'New' },
-    { id: 6, name: 'Portable Bluetooth Speaker', price: 79.99, image: 'https://images.unsplash.com/photo-1608156639585-b3a032ef9689?w=600&q=80', rating: 4 },
-    { id: 7, name: 'Instant Film Camera', price: 69.00, image: 'https://images.unsplash.com/photo-1526170315873-3a561629923d?w=600&q=80', rating: 5 },
-    { id: 8, name: 'Yoga Mat Premium', price: 35.00, image: 'https://images.unsplash.com/photo-1592432678899-9a25df5d1228?w=600&q=80', rating: 4 },
+    { id: 1, name: 'Premium Wireless Headphones', basePrice: 249.99, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&q=80', rating: 5, badge: 'Hot' },
+    { id: 2, name: 'Smart Watch Series 7', basePrice: 399.00, image: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=600&q=80', rating: 4, badge: 'Trending' },
+    { id: 3, name: 'Minimalist Leather Wallet', basePrice: 45.00, image: 'https://images.unsplash.com/photo-1627123424574-724758594e93?w=600&q=80', rating: 5 },
+    { id: 4, name: 'Ergonomic Office Chair', basePrice: 189.50, image: 'https://images.unsplash.com/photo-1505797149-43b0ad7664a3?w=600&q=80', rating: 4 },
+    { id: 5, name: 'Mechanical Keyboard RGB', basePrice: 120.00, image: 'https://images.unsplash.com/photo-1511467687858-23d96c32e4ae?w=600&q=80', rating: 5, badge: 'New' },
+    { id: 6, name: 'Portable Bluetooth Speaker', basePrice: 79.99, image: 'https://images.unsplash.com/photo-1608156639585-b3a032ef9689?w=600&q=80', rating: 4 },
+    { id: 7, name: 'Instant Film Camera', basePrice: 69.00, image: 'https://images.unsplash.com/photo-1526170315873-3a561629923d?w=600&q=80', rating: 5 },
+    { id: 8, name: 'Yoga Mat Premium', basePrice: 35.00, image: 'https://images.unsplash.com/photo-1592432678899-9a25df5d1228?w=600&q=80', rating: 4 },
   ];
 
   const featuredProducts = trending.slice(0, 4);

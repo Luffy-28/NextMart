@@ -3,14 +3,14 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
 
 const PRODUCTS = [
-  { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, originalPrice: 449, rating: 5, reviews: 128, category: 'Electronics', subcategory: 'Audio', badge: 'Best Seller', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
-  { id: 2, name: 'Running Shoes Pro X', price: 129, originalPrice: 159, rating: 4, reviews: 84, category: 'Sports', subcategory: 'Footwear', badge: 'Sale', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
-  { id: 3, name: 'Smart Desk Lamp', price: 49, originalPrice: null, rating: 4, reviews: 47, category: 'Home & Living', subcategory: 'Lighting', badge: null, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80' },
-  { id: 4, name: 'Ergonomic Laptop Stand', price: 89, originalPrice: null, rating: 5, reviews: 203, category: 'Electronics', subcategory: 'Accessories', badge: 'New', image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
-  { id: 5, name: 'Yoga Mat Premium', price: 39, originalPrice: 55, rating: 4, reviews: 65, category: 'Sports', subcategory: 'Fitness', badge: 'Sale', image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=500&q=80' },
-  { id: 6, name: 'Ceramic Coffee Mug Set', price: 28, originalPrice: null, rating: 4, reviews: 34, category: 'Home & Living', subcategory: 'Kitchen', badge: null, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80' },
-  { id: 7, name: 'Vitamin C Serum 30ml', price: 32, originalPrice: 40, rating: 5, reviews: 112, category: 'Beauty', subcategory: 'Skincare', badge: 'Sale', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80' },
-  { id: 8, name: 'Linen Throw Blanket', price: 64, originalPrice: null, rating: 4, reviews: 28, category: 'Home & Living', subcategory: 'Decor', badge: 'New', image: 'https://images.unsplash.com/photo-1580870058882-72c67b2e3e58?w=500&q=80' },
+  { id: 1, name: 'Wireless Noise-Cancelling Headphones', basePrice: 349, discountedPrice: 449, rating: 5, reviewCount: 128, category: 'Electronics', subcategory: 'Audio', badge: 'Best Seller', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
+  { id: 2, name: 'Running Shoes Pro X', basePrice: 129, discountedPrice: 159, rating: 4, reviewCount: 84, category: 'Sports', subcategory: 'Footwear', badge: 'Sale', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+  { id: 3, name: 'Smart Desk Lamp', basePrice: 49, discountedPrice: null, rating: 4, reviewCount: 47, category: 'Home & Living', subcategory: 'Lighting', badge: null, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80' },
+  { id: 4, name: 'Ergonomic Laptop Stand', basePrice: 89, discountedPrice: null, rating: 5, reviewCount: 203, category: 'Electronics', subcategory: 'Accessories', badge: 'New', image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
+  { id: 5, name: 'Yoga Mat Premium', basePrice: 39, discountedPrice: 55, rating: 4, reviewCount: 65, category: 'Sports', subcategory: 'Fitness', badge: 'Sale', image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=500&q=80' },
+  { id: 6, name: 'Ceramic Coffee Mug Set', basePrice: 28, discountedPrice: null, rating: 4, reviewCount: 34, category: 'Home & Living', subcategory: 'Kitchen', badge: null, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80' },
+  { id: 7, name: 'Vitamin C Serum 30ml', basePrice: 32, discountedPrice: 40, rating: 5, reviewCount: 112, category: 'Beauty', subcategory: 'Skincare', badge: 'Sale', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80' },
+  { id: 8, name: 'Linen Throw Blanket', basePrice: 64, discountedPrice: null, rating: 4, reviewCount: 28, category: 'Home & Living', subcategory: 'Decor', badge: 'New', image: 'https://images.unsplash.com/photo-1580870058882-72c67b2e3e58?w=500&q=80' },
 ];
 
 const CATEGORIES = [
@@ -82,7 +82,7 @@ const ProductCard = ({ product, added, onAdd }) => {
           <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{product.subcategory}</span>
           <div className="d-flex align-items-center gap-1">
             <StarRating rating={product.rating} />
-            <span style={{ fontSize: '0.7rem', color: 'var(--nex-text-muted)' }}>({product.reviews})</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--nex-text-muted)' }}>({product.reviewCount})</span>
           </div>
         </div>
 
@@ -92,9 +92,9 @@ const ProductCard = ({ product, added, onAdd }) => {
 
         <div className="d-flex align-items-center justify-content-between mt-auto pt-2" style={{ borderTop: '1px solid var(--nex-border)' }}>
           <div>
-            <span className="nex-text-light fw-bold" style={{ fontSize: '1.15rem' }}>${product.price}</span>
-            {product.originalPrice && (
-              <span className="nex-text-muted ms-2 text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${product.originalPrice}</span>
+            <span className="nex-text-light fw-bold" style={{ fontSize: '1.15rem' }}>${product.basePrice}</span>
+            {product.discountedPrice && (
+              <span className="nex-text-muted ms-2 text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${product.discountedPrice}</span>
             )}
           </div>
           <button
@@ -230,11 +230,11 @@ const Products = () => {
   const filtered = PRODUCTS
     .filter(p => selectedCategory === 'All' || p.category === selectedCategory)
     .filter(p => selectedSubcategory === 'All' || p.subcategory === selectedSubcategory)
-    .filter(p => p.price >= priceRange[0] && p.price <= priceRange[1])
+    .filter(p => p.basePrice >= priceRange[0] && p.basePrice <= priceRange[1])
     .filter(p => p.rating >= minRating)
     .sort((a, b) => {
-      if (sortBy === 'price-asc') return a.price - b.price;
-      if (sortBy === 'price-desc') return b.price - a.price;
+      if (sortBy === 'price-asc') return a.basePrice - b.basePrice;
+      if (sortBy === 'price-desc') return b.basePrice - a.basePrice;
       if (sortBy === 'rating') return b.rating - a.rating;
       return 0;
     });
@@ -418,12 +418,12 @@ const Products = () => {
                       <Link to={`/products/${p.id}`} className="text-decoration-none">
                         <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '1rem' }}>{p.name}</p>
                       </Link>
-                      <div><StarRating rating={p.rating} size={13} /><span className="nex-text-muted ms-2" style={{ fontSize: '0.78rem' }}>({p.reviews})</span></div>
+                      <div><StarRating rating={p.rating} size={13} /><span className="nex-text-muted ms-2" style={{ fontSize: '0.78rem' }}>({p.reviewCount})</span></div>
                     </div>
                     <div className="d-flex flex-md-column align-items-center align-items-md-end gap-3 flex-shrink-0">
                       <div className="text-md-end">
-                        {p.originalPrice && <span className="nex-text-muted d-block text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${p.originalPrice}</span>}
-                        <span className="nex-text-light fw-bold" style={{ fontSize: '1.3rem' }}>${p.price}</span>
+                        {p.discountedPrice && <span className="nex-text-muted d-block text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${p.discountedPrice}</span>}
+                        <span className="nex-text-light fw-bold" style={{ fontSize: '1.3rem' }}>${p.basePrice}</span>
                       </div>
                       <button onClick={() => handleAddToCart(p.id)} className={addedToCart[p.id] ? 'nex-btn-primary' : 'nex-btn-outline'} style={{ padding: '8px 18px', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
                         {addedToCart[p.id] ? '✓ Added' : '+ Cart'}
