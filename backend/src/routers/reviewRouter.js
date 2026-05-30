@@ -5,6 +5,7 @@ import {
   getReviewByProduct,
   updateReview,
 } from "../controllers/reviewController.js";
+import { authMiddleware } from "../middlewares/authMiddleware.js";
 const router = express.Router();
 
 router.post("/:orderId/:productId", authMiddleware, addReview);

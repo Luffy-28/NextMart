@@ -1,25 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
-
-const PRODUCTS = [
-  { id: 1, name: 'Wireless Noise-Cancelling Headphones', basePrice: 349, discountedPrice: 449, rating: 5, reviewCount: 128, category: 'Electronics', subcategory: 'Audio', badge: 'Best Seller', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
-  { id: 2, name: 'Running Shoes Pro X', basePrice: 129, discountedPrice: 159, rating: 4, reviewCount: 84, category: 'Sports', subcategory: 'Footwear', badge: 'Sale', image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
-  { id: 3, name: 'Smart Desk Lamp', basePrice: 49, discountedPrice: null, rating: 4, reviewCount: 47, category: 'Home & Living', subcategory: 'Lighting', badge: null, image: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=500&q=80' },
-  { id: 4, name: 'Ergonomic Laptop Stand', basePrice: 89, discountedPrice: null, rating: 5, reviewCount: 203, category: 'Electronics', subcategory: 'Accessories', badge: 'New', image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
-  { id: 5, name: 'Yoga Mat Premium', basePrice: 39, discountedPrice: 55, rating: 4, reviewCount: 65, category: 'Sports', subcategory: 'Fitness', badge: 'Sale', image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=500&q=80' },
-  { id: 6, name: 'Ceramic Coffee Mug Set', basePrice: 28, discountedPrice: null, rating: 4, reviewCount: 34, category: 'Home & Living', subcategory: 'Kitchen', badge: null, image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=500&q=80' },
-  { id: 7, name: 'Vitamin C Serum 30ml', basePrice: 32, discountedPrice: 40, rating: 5, reviewCount: 112, category: 'Beauty', subcategory: 'Skincare', badge: 'Sale', image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?w=500&q=80' },
-  { id: 8, name: 'Linen Throw Blanket', basePrice: 64, discountedPrice: null, rating: 4, reviewCount: 28, category: 'Home & Living', subcategory: 'Decor', badge: 'New', image: 'https://images.unsplash.com/photo-1580870058882-72c67b2e3e58?w=500&q=80' },
-];
-
-const CATEGORIES = [
-  { name: 'All', subcategories: [] },
-  { name: 'Electronics', subcategories: ['Audio', 'Computers', 'Accessories'] },
-  { name: 'Sports', subcategories: ['Footwear', 'Fitness', 'Equipment'] },
-  { name: 'Home & Living', subcategories: ['Lighting', 'Kitchen', 'Decor'] },
-  { name: 'Beauty', subcategories: ['Skincare', 'Makeup', 'Haircare'] },
-];
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchAllProducts } from '../features/product/productAction.js';
+import { fetchAllActiveCategory } from '../features/category/categoryAction.js';
+import { fetchAllActiveSubCategory } from '../features/subCategory/subCategoryAction.js';
 
 const BADGE_COLOR = { 'Best Seller': '#8B5CF6', 'Sale': '#EF4444', 'New': '#06B6D4' };
 
@@ -54,6 +39,9 @@ const ProductCard = ({ product, added, onAdd }) => {
     if (glowRef.current) glowRef.current.style.background = 'transparent';
   }, []);
 
+  const imageUrl = product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80';
+  const displayCategory = product.subCategory?.name || product.category?.name || 'Product';
+
   return (
     <div ref={cardRef} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}
       className="nex-glass-card h-100 d-flex flex-column overflow-hidden"
@@ -61,7 +49,7 @@ const ProductCard = ({ product, added, onAdd }) => {
       <div ref={glowRef} style={{ position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 0, borderRadius: 'inherit', transition: 'background 0.2s' }} />
 
       <div style={{ position: 'relative', height: 220, overflow: 'hidden', flexShrink: 0 }}>
-        <img src={product.image} alt={product.name}
+        <img src={imageUrl} alt={product.name}
           style={{ width: '100%', height: '100%', objectFit: 'cover', transition: 'transform 0.5s ease' }}
           onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.06)'}
           onMouseLeave={e => e.currentTarget.style.transform = ''} />
@@ -70,7 +58,7 @@ const ProductCard = ({ product, added, onAdd }) => {
             {product.badge.toUpperCase()}
           </span>
         )}
-        <Link to={`/products/${product.id}`}
+        <Link to={`/products/${product._id || product.id}`}
           className="position-absolute d-flex align-items-center justify-content-center"
           style={{ top: 10, right: 10, width: 34, height: 34, background: 'rgba(7,7,15,0.7)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '50%', color: 'rgba(240,244,255,0.7)', textDecoration: 'none', backdropFilter: 'blur(8px)', fontSize: '0.85rem' }}>
           <i className="bi bi-eye" />
@@ -79,14 +67,14 @@ const ProductCard = ({ product, added, onAdd }) => {
 
       <div className="d-flex flex-column flex-grow-1 p-3" style={{ position: 'relative', zIndex: 1 }}>
         <div className="d-flex justify-content-between align-items-center mb-1">
-          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{product.subcategory}</span>
+          <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase', letterSpacing: '0.07em' }}>{displayCategory}</span>
           <div className="d-flex align-items-center gap-1">
-            <StarRating rating={product.rating} />
-            <span style={{ fontSize: '0.7rem', color: 'var(--nex-text-muted)' }}>({product.reviewCount})</span>
+            <StarRating rating={product.rating || 5} />
+            <span style={{ fontSize: '0.7rem', color: 'var(--nex-text-muted)' }}>({product.reviewCount || 0})</span>
           </div>
         </div>
 
-        <Link to={`/products/${product.id}`} className="text-decoration-none flex-grow-1">
+        <Link to={`/products/${product._id || product.id}`} className="text-decoration-none flex-grow-1">
           <p className="nex-text-light fw-semibold mb-3" style={{ fontSize: '0.9rem', lineHeight: 1.4, minHeight: 40 }}>{product.name}</p>
         </Link>
 
@@ -98,7 +86,7 @@ const ProductCard = ({ product, added, onAdd }) => {
             )}
           </div>
           <button
-            onClick={() => onAdd(product.id)}
+            onClick={() => onAdd(product._id || product.id)}
             className={added ? 'nex-btn-primary' : 'nex-btn-outline'}
             style={{ padding: '7px 14px', fontSize: '0.8rem' }}>
             {added ? <><i className="bi bi-check-lg me-1" />Added</> : <><i className="bi bi-bag-plus me-1" />Cart</>}
@@ -110,48 +98,67 @@ const ProductCard = ({ product, added, onAdd }) => {
 };
 
 const FilterPanel = ({
-  selectedCategory, selectedSubcategory, openCategories, priceRange, minRating,
+  categories, subCategories, selectedCategory, selectedSubcategory, openCategories, priceRange, minRating,
   handleCategoryToggle, setSelectedSubcategory, setPriceRange, setMinRating, onClear,
 }) => (
   <>
     <p className="nex-filter-heading">Category</p>
-    {CATEGORIES.map(cat => (
-      <div key={cat.name} className="mb-1">
-        <div
-          onClick={() => handleCategoryToggle(cat.name)}
-          className="d-flex align-items-center justify-content-between py-2 px-3 rounded"
-          style={{
-            cursor: 'pointer', fontSize: '0.88rem', fontWeight: selectedCategory === cat.name ? 700 : 500,
-            background: selectedCategory === cat.name ? 'rgba(139,92,246,0.12)' : 'transparent',
-            color: selectedCategory === cat.name ? 'var(--nex-purple)' : 'var(--nex-text-muted)',
-            transition: 'all 0.2s',
-          }}>
-          <span>{cat.name}</span>
-          {cat.subcategories.length > 0 && (
-            <i className={`bi bi-chevron-${openCategories[cat.name] ? 'up' : 'down'}`} style={{ fontSize: '0.7rem' }} />
-          )}
-        </div>
-        <Collapse in={!!openCategories[cat.name] && cat.subcategories.length > 0}>
-          <div className="ps-3 pt-1">
-            {cat.subcategories.map(sub => (
-              <div key={sub} onClick={() => setSelectedSubcategory(sub)}
-                className="py-1 px-3 rounded"
-                style={{
-                  cursor: 'pointer', fontSize: '0.82rem', fontWeight: selectedSubcategory === sub ? 600 : 400,
-                  color: selectedSubcategory === sub ? 'var(--nex-cyan)' : 'var(--nex-text-muted)',
-                  transition: 'color 0.2s',
-                }}>
-                {sub}
-              </div>
-            ))}
-          </div>
-        </Collapse>
+    
+    {/* All Categories Option */}
+    <div className="mb-1">
+      <div
+        onClick={() => handleCategoryToggle('All')}
+        className="d-flex align-items-center justify-content-between py-2 px-3 rounded"
+        style={{
+          cursor: 'pointer', fontSize: '0.88rem', fontWeight: selectedCategory === 'All' ? 700 : 500,
+          background: selectedCategory === 'All' ? 'rgba(139,92,246,0.12)' : 'transparent',
+          color: selectedCategory === 'All' ? 'var(--nex-purple)' : 'var(--nex-text-muted)',
+          transition: 'all 0.2s',
+        }}>
+        <span>All Categories</span>
       </div>
-    ))}
+    </div>
+
+    {/* Database Categories Map */}
+    {categories?.map(cat => {
+      const isSelected = selectedCategory === cat.name;
+      const isOpen = !!openCategories[cat.name];
+      return (
+        <div key={cat._id} className="mb-1">
+          <div
+            onClick={() => handleCategoryToggle(cat.name)}
+            className="d-flex align-items-center justify-content-between py-2 px-3 rounded"
+            style={{
+              cursor: 'pointer', fontSize: '0.88rem', fontWeight: isSelected ? 700 : 500,
+              background: isSelected ? 'rgba(139,92,246,0.12)' : 'transparent',
+              color: isSelected ? 'var(--nex-purple)' : 'var(--nex-text-muted)',
+              transition: 'all 0.2s',
+            }}>
+            <span>{cat.name}</span>
+            <i className={`bi bi-chevron-${isOpen ? 'up' : 'down'}`} style={{ fontSize: '0.7rem' }} />
+          </div>
+          <Collapse in={isOpen}>
+            <div className="ps-3 pt-1">
+              {isSelected && subCategories?.map(sub => (
+                <div key={sub._id} onClick={() => setSelectedSubcategory(sub.name)}
+                  className="py-1 px-3 rounded"
+                  style={{
+                    cursor: 'pointer', fontSize: '0.82rem', fontWeight: selectedSubcategory === sub.name ? 600 : 400,
+                    color: selectedSubcategory === sub.name ? 'var(--nex-cyan)' : 'var(--nex-text-muted)',
+                    transition: 'color 0.2s',
+                  }}>
+                  {sub.name}
+                </div>
+              ))}
+            </div>
+          </Collapse>
+        </div>
+      );
+    })}
 
     <div style={{ height: 1, background: 'var(--nex-border)', margin: '20px 0' }} />
     <p className="nex-filter-heading">Max Price</p>
-    <input type="range" min={0} max={500} step={10} value={priceRange[1]}
+    <input type="range" min={0} max={1000} step={10} value={priceRange[1]}
       onChange={e => setPriceRange([0, +e.target.value])}
       style={{ width: '100%', accentColor: 'var(--nex-purple)' }} />
     <div className="d-flex justify-content-between mt-1">
@@ -181,6 +188,7 @@ const FilterPanel = ({
 );
 
 const Products = () => {
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const initCategory = searchParams.get('category') || 'All';
   const initSubcategory = searchParams.get('subcategory') || 'All';
@@ -188,19 +196,76 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState(initCategory);
   const [selectedSubcategory, setSelectedSubcategory] = useState(initSubcategory);
   const [openCategories, setOpenCategories] = useState({ All: true, [initCategory]: true });
-  const [priceRange, setPriceRange] = useState([0, 500]);
+  const [priceRange, setPriceRange] = useState([0, 1000]);
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState('grid');
   const [minRating, setMinRating] = useState(0);
   const [addedToCart, setAddedToCart] = useState({});
   const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
 
+  // Redux Selectors
+  const { products, pagination } = useSelector((state) => state.productStore);
+  const { categories } = useSelector((state) => state.categoryStore);
+  const { subCategories } = useSelector((state) => state.subCategoryStore);
+
+  // Load all categories on mount
+  useEffect(() => {
+    dispatch(fetchAllActiveCategory());
+  }, [dispatch]);
+
+  // Synchronize category search parameters
   useEffect(() => {
     const cat = searchParams.get('category');
     const subcat = searchParams.get('subcategory');
     if (cat) { setSelectedCategory(cat); setOpenCategories(p => ({ ...p, [cat]: true })); }
     if (subcat) setSelectedSubcategory(subcat);
   }, [searchParams]);
+
+  // Active Category document lookup
+  const activeCategoryDoc = categories?.find(
+    (cat) => cat.name === selectedCategory || cat.slug === selectedCategory?.toLowerCase()
+  );
+
+  // Fetch subcategories when active category updates
+  useEffect(() => {
+    if (activeCategoryDoc?._id) {
+      dispatch(fetchAllActiveSubCategory(activeCategoryDoc._id));
+    }
+  }, [activeCategoryDoc, dispatch]);
+
+  // Main Products fetch reactive to filters
+  useEffect(() => {
+    const categoryId = activeCategoryDoc?._id || '';
+    const activeSubcategoryDoc = subCategories?.find(
+      (sub) => sub.name === selectedSubcategory || sub.slug === selectedSubcategory?.toLowerCase()
+    );
+    const subCategoryId = activeSubcategoryDoc?._id || '';
+
+    dispatch(
+      fetchAllProducts(
+        currentPage,
+        12, // limit
+        sortBy,
+        categoryId,
+        subCategoryId,
+        priceRange[0],
+        priceRange[1],
+        minRating,
+        '' // search
+      )
+    );
+  }, [
+    currentPage,
+    selectedCategory,
+    selectedSubcategory,
+    priceRange,
+    sortBy,
+    minRating,
+    activeCategoryDoc,
+    subCategories,
+    dispatch
+  ]);
 
   // Lock body scroll while drawer is open
   useEffect(() => {
@@ -209,6 +274,7 @@ const Products = () => {
   }, [filterDrawerOpen]);
 
   const handleCategoryToggle = (catName) => {
+    setCurrentPage(1);
     if (catName === 'All') { setSelectedCategory('All'); setSelectedSubcategory('All'); return; }
     setOpenCategories(p => ({ ...p, [catName]: !p[catName] }));
     setSelectedCategory(catName);
@@ -221,34 +287,32 @@ const Products = () => {
   };
 
   const clearFilters = () => {
+    setCurrentPage(1);
     setSelectedCategory('All');
     setSelectedSubcategory('All');
-    setPriceRange([0, 500]);
+    setPriceRange([0, 1000]);
     setMinRating(0);
   };
-
-  const filtered = PRODUCTS
-    .filter(p => selectedCategory === 'All' || p.category === selectedCategory)
-    .filter(p => selectedSubcategory === 'All' || p.subcategory === selectedSubcategory)
-    .filter(p => p.basePrice >= priceRange[0] && p.basePrice <= priceRange[1])
-    .filter(p => p.rating >= minRating)
-    .sort((a, b) => {
-      if (sortBy === 'price-asc') return a.basePrice - b.basePrice;
-      if (sortBy === 'price-desc') return b.basePrice - a.basePrice;
-      if (sortBy === 'rating') return b.rating - a.rating;
-      return 0;
-    });
 
   const activeFilterCount = [
     selectedCategory !== 'All',
     selectedSubcategory !== 'All',
-    priceRange[1] !== 500,
+    priceRange[1] !== 1000,
     minRating > 0,
   ].filter(Boolean).length;
 
   const filterPanelProps = {
-    selectedCategory, selectedSubcategory, openCategories, priceRange, minRating,
-    handleCategoryToggle, setSelectedSubcategory, setPriceRange, setMinRating,
+    categories,
+    subCategories,
+    selectedCategory,
+    selectedSubcategory,
+    openCategories,
+    priceRange,
+    minRating,
+    handleCategoryToggle,
+    setSelectedSubcategory,
+    setPriceRange,
+    setMinRating,
     onClear: clearFilters,
   };
 
@@ -283,7 +347,7 @@ const Products = () => {
               </p>
             </div>
             <div className="nex-glass-card px-4 py-2">
-              <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{filtered.length} products</span>
+              <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{pagination?.totalItems || (products || []).length} products</span>
             </div>
           </div>
         </div>
@@ -315,7 +379,7 @@ const Products = () => {
                     width: 20, height: 20, borderRadius: '50%',
                     background: 'var(--nex-purple)', color: 'white',
                     fontSize: '0.68rem', fontWeight: 700,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    display: 'flex', alignItems: 'center', justifycontent: 'center',
                     boxShadow: '0 0 0 2px var(--nex-bg)',
                   }}>
                     {activeFilterCount}
@@ -344,12 +408,12 @@ const Products = () => {
                       onClick={() => { setSelectedCategory('All'); setSelectedSubcategory('All'); }}>×</span>
                   </span>
                 )}
-                {priceRange[1] < 500 && (
+                {priceRange[1] < 1000 && (
                   <span className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill"
                     style={{ background: 'rgba(139,92,246,0.12)', color: 'var(--nex-purple)', fontSize: '0.8rem', fontWeight: 600 }}>
                     Max ${priceRange[1]}
                     <span style={{ cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
-                      onClick={() => setPriceRange([0, 500])}>×</span>
+                      onClick={() => setPriceRange([0, 1000])}>×</span>
                   </span>
                 )}
                 {minRating > 0 && (
@@ -386,7 +450,7 @@ const Products = () => {
               </div>
             </div>
 
-            {filtered.length === 0 ? (
+            {(!products || products.length === 0) ? (
               <div className="nex-glass-card text-center py-5 my-4">
                 <i className="bi bi-search nex-text-muted mb-3 d-block" style={{ fontSize: '3rem' }} />
                 <h4 className="nex-text-light fw-bold mb-2">No products found</h4>
@@ -397,54 +461,75 @@ const Products = () => {
               </div>
             ) : viewMode === 'grid' ? (
               <div className="row g-4 row-cols-1 row-cols-sm-2 row-cols-xl-3 row-cols-xxl-4">
-                {filtered.map(p => (
-                  <div className="col" key={p.id}>
-                    <ProductCard product={p} added={!!addedToCart[p.id]} onAdd={handleAddToCart} />
+                {products.map(p => (
+                  <div className="col" key={p._id || p.id}>
+                    <ProductCard product={p} added={!!addedToCart[p._id || p.id]} onAdd={handleAddToCart} />
                   </div>
                 ))}
               </div>
             ) : (
               <div className="d-flex flex-column gap-3">
-                {filtered.map(p => (
-                  <div key={p.id} className="nex-glass-card d-flex flex-column flex-md-row align-items-md-center gap-4 p-4"
-                    style={{ transition: 'border-color 0.2s' }}
-                    onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)'}
-                    onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--nex-border)'}>
-                    <div style={{ width: 120, height: 100, flexShrink: 0, borderRadius: 10, overflow: 'hidden' }}>
-                      <img src={p.image} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                    <div className="flex-grow-1">
-                      <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase' }}>{p.category}</span>
-                      <Link to={`/products/${p.id}`} className="text-decoration-none">
-                        <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '1rem' }}>{p.name}</p>
-                      </Link>
-                      <div><StarRating rating={p.rating} size={13} /><span className="nex-text-muted ms-2" style={{ fontSize: '0.78rem' }}>({p.reviewCount})</span></div>
-                    </div>
-                    <div className="d-flex flex-md-column align-items-center align-items-md-end gap-3 flex-shrink-0">
-                      <div className="text-md-end">
-                        {p.discountedPrice && <span className="nex-text-muted d-block text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${p.discountedPrice}</span>}
-                        <span className="nex-text-light fw-bold" style={{ fontSize: '1.3rem' }}>${p.basePrice}</span>
+                {products.map(p => {
+                  const imageUrl = p.images?.[0] || p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80';
+                  const displayCategory = p.subCategory?.name || p.category?.name || 'Product';
+                  return (
+                    <div key={p._id || p.id} className="nex-glass-card d-flex flex-column flex-md-row align-items-md-center gap-4 p-4"
+                      style={{ transition: 'border-color 0.2s' }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = 'rgba(139,92,246,0.3)'}
+                      onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--nex-border)'}>
+                      <div style={{ width: 120, height: 100, flexShrink: 0, borderRadius: 10, overflow: 'hidden' }}>
+                        <img src={imageUrl} alt={p.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
-                      <button onClick={() => handleAddToCart(p.id)} className={addedToCart[p.id] ? 'nex-btn-primary' : 'nex-btn-outline'} style={{ padding: '8px 18px', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
-                        {addedToCart[p.id] ? '✓ Added' : '+ Cart'}
-                      </button>
+                      <div className="flex-grow-1">
+                        <span style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--nex-cyan)', textTransform: 'uppercase' }}>{displayCategory}</span>
+                        <Link to={`/products/${p._id || p.id}`} className="text-decoration-none">
+                          <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '1rem' }}>{p.name}</p>
+                        </Link>
+                        <div><StarRating rating={p.rating || 5} size={13} /><span className="nex-text-muted ms-2" style={{ fontSize: '0.78rem' }}>({p.reviewCount || 0})</span></div>
+                      </div>
+                      <div className="d-flex flex-md-column align-items-center align-items-md-end gap-3 flex-shrink-0">
+                        <div className="text-md-end">
+                          {p.discountedPrice && <span className="nex-text-muted d-block text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${p.discountedPrice}</span>}
+                          <span className="nex-text-light fw-bold" style={{ fontSize: '1.3rem' }}>${p.basePrice}</span>
+                        </div>
+                        <button onClick={() => handleAddToCart(p._id || p.id)} className={addedToCart[p._id || p.id] ? 'nex-btn-primary' : 'nex-btn-outline'} style={{ padding: '8px 18px', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
+                          {addedToCart[p._id || p.id] ? '✓ Added' : '+ Cart'}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
-            {filtered.length > 0 && (
+            {pagination && pagination.totalPages > 1 && (
               <div className="d-flex justify-content-center align-items-center gap-2 mt-5">
-                <button className="nex-glass-card d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, border: 'none', color: 'var(--nex-text-muted)', fontSize: '1.1rem', cursor: 'pointer', padding: 0 }}>‹</button>
-                {[1, 2, 3].map(pg => (
-                  <button key={pg} style={{
-                    width: 40, height: 40, borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem',
-                    background: pg === 1 ? 'var(--nex-gradient)' : 'var(--nex-bg-card)',
-                    color: pg === 1 ? 'white' : 'var(--nex-text-muted)',
-                  }}>{pg}</button>
+                <button 
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  className="nex-glass-card d-flex align-items-center justify-content-center" 
+                  style={{ width: 40, height: 40, border: 'none', color: 'var(--nex-text-muted)', fontSize: '1.1rem', cursor: 'pointer', padding: 0, opacity: currentPage === 1 ? 0.5 : 1 }}>
+                  ‹
+                </button>
+                {Array.from({ length: pagination.totalPages }, (_, i) => i + 1).map(pg => (
+                  <button 
+                    key={pg} 
+                    onClick={() => setCurrentPage(pg)}
+                    style={{
+                      width: 40, height: 40, borderRadius: 8, border: 'none', cursor: 'pointer', fontWeight: 700, fontSize: '0.88rem',
+                      background: pg === currentPage ? 'var(--nex-gradient)' : 'var(--nex-bg-card)',
+                      color: pg === currentPage ? 'white' : 'var(--nex-text-muted)',
+                    }}>
+                    {pg}
+                  </button>
                 ))}
-                <button className="nex-glass-card d-flex align-items-center justify-content-center" style={{ width: 40, height: 40, border: 'none', color: 'var(--nex-text-muted)', fontSize: '1.1rem', cursor: 'pointer', padding: 0 }}>›</button>
+                <button 
+                  disabled={currentPage === pagination.totalPages}
+                  onClick={() => setCurrentPage(p => Math.min(pagination.totalPages, p + 1))}
+                  className="nex-glass-card d-flex align-items-center justify-content-center" 
+                  style={{ width: 40, height: 40, border: 'none', color: 'var(--nex-text-muted)', fontSize: '1.1rem', cursor: 'pointer', padding: 0, opacity: currentPage === pagination.totalPages ? 0.5 : 1 }}>
+                  ›
+                </button>
               </div>
             )}
           </div>
@@ -514,7 +599,7 @@ const Products = () => {
           style={{ padding: '14px', fontSize: '0.95rem', fontWeight: 700 }}
           onClick={() => setFilterDrawerOpen(false)}>
           <i className="bi bi-check-lg" />
-          Show {filtered.length} Product{filtered.length !== 1 ? 's' : ''}
+          Show {pagination?.totalItems || (products || []).length} Product{(pagination?.totalItems || (products || []).length) !== 1 ? 's' : ''}
         </button>
       </div>
     </div>

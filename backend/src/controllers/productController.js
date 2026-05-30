@@ -1,4 +1,7 @@
 import Product from "../models/productModel.js";
+import { Category } from "../models/categoryModel.js";
+import { SubCategory } from "../models/subCategoryModel.js";
+import mongoose from "mongoose";
 
 // Get all products with pagination, sorting and filtering
 export const getProducts = async (req, res) => {
@@ -9,6 +12,7 @@ export const getProducts = async (req, res) => {
       sort = "newest",
       category,
       subcategory,
+      subCategory,
       minPrice,
       maxPrice,
       rating,
@@ -18,14 +22,23 @@ export const getProducts = async (req, res) => {
     const query = {};
 
     if (category) query.category = category;
-    if (subcategory) query.subCategory = subcategory;
+    
+    const activeSubcategory = subcategory || subCategory;
+    if (activeSubcategory) query.subCategory = activeSubcategory;
     if (minPrice || maxPrice) {
       query.basePrice = {};
-      if (minPrice) query.basePrice.$gte = parseInt(minPrice);
-      if (maxPrice) query.basePrice.$lte = parseInt(maxPrice);
+      if (minPrice && !isNaN(parseInt(minPrice))) query.basePrice.$gte = parseInt(minPrice);
+      if (maxPrice && !isNaN(parseInt(maxPrice))) query.basePrice.$lte = parseInt(maxPrice);
+      if (Object.keys(query.basePrice).length === 0) delete query.basePrice;
     }
     if (search) query.$text = { $search: search };
-    if (rating) query.rating = { $gte: parseInt(rating) };
+    
+    if (rating && !isNaN(parseInt(rating))) {
+      const parsedRating = parseInt(rating);
+      if (parsedRating > 0) {
+        query.rating = { $gte: parsedRating };
+      }
+    }
 
     let sortOption = {};
     switch (sort.toLowerCase()) {
@@ -172,11 +185,15 @@ export const getProductsByTags = async (req, res) => {
 export const getProductBySlug = async (req, res) => {
   try {
     const { slug } = req.params;
-    const product = await Product.findOne({ slug, isActive: true }).populate({
-      path: "category",
-      select: "name slug parent",
-      populate: { path: "parent", select: "name slug" },
-    });
+    const product = await Product.findOne({ slug, isActive: true })
+      .populate({
+        path: "category",
+        select: "name slug",
+      })
+      .populate({
+        path: "subCategory",
+        select: "name slug",
+      });
     if (!product || !product.isActive) {
       return res.status(404).send({
         status: "error",

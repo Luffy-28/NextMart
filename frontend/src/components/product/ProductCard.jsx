@@ -37,6 +37,9 @@ const ProductCard = ({ product }) => {
     }
   }, []);
 
+  const productId = product._id || product.id;
+  const productImage = product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80';
+
   return (
     <div
       ref={cardRef}
@@ -47,8 +50,8 @@ const ProductCard = ({ product }) => {
       <div ref={glowRef} className="nex-card-glow" />
 
       <div className="nex-product-img-wrap">
-        <Link to={`/product/${product.id}`}>
-          <img src={product.image} alt={product.name} className="nex-product-img" />
+        <Link to={`/products/${productId}`}>
+          <img src={productImage} alt={product.name} className="nex-product-img" />
         </Link>
         {product.badge && (
           <span
@@ -62,7 +65,7 @@ const ProductCard = ({ product }) => {
 
       <div className="nex-product-body">
         <Rating value={product.rating || 5} />
-        <Link to={`/product/${product.id}`} className="text-decoration-none">
+        <Link to={`/products/${productId}`} className="text-decoration-none">
           <h6 className="nex-product-title">{product.name}</h6>
         </Link>
         <div className="nex-product-footer">

@@ -530,8 +530,15 @@ const seed = async () => {
         continue;
       }
 
+      const slug = tmpl.name
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9\s-]/g, "")
+        .replace(/\s+/g, "-");
+
       productDocs.push({
         ...fields,
+        slug,
         category: catEntry.id,
         subCategory: subCategoryName ? catEntry.subs[subCategoryName] : undefined,
       });

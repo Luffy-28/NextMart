@@ -22,7 +22,7 @@ const CategoryCard = ({ category }) => {
   }, []);
 
   return (
-    <Link to={`/category/${category.id}`} className="text-decoration-none d-block">
+    <Link to={`/categories`} className="text-decoration-none d-block">
       <div
         ref={cardRef}
         className="nex-category-card"
@@ -30,7 +30,7 @@ const CategoryCard = ({ category }) => {
         onMouseLeave={onMouseLeave}
       >
         <div className="nex-cat-img-wrap">
-          <img src={category.image} alt={category.name} className="nex-cat-img" />
+          <img src={category.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400&q=80'} alt={category.name} className="nex-cat-img" />
           <div className="nex-cat-overlay" />
         </div>
         <div className="nex-cat-body">
