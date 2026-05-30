@@ -44,6 +44,25 @@ const productSchema = new mongoose.Schema(
     size: {
       type: String,
     },
+    features: {
+      type: [String],
+      default: [],
+    },
+    specifications: {
+      type: [
+        {
+          label: {
+            type: String,
+            trim: true,
+          },
+          value: {
+            type: String,
+            trim: true,
+          },
+        },
+      ],
+      default: [],
+    },
     tags: [{ type: String }],
     images: [{ type: String }],
 

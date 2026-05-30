@@ -40,7 +40,7 @@ const ProductCard = ({ product, added, onAdd }) => {
   }, []);
 
   const imageUrl = product.images?.[0] || product.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80';
-  const displayCategory = product.subCategory?.name || product.category?.name || 'Product';
+  const displayCategory = product.subCategory?.name || product.category?.name || '';
 
   return (
     <div ref={cardRef} onMouseMove={onMouseMove} onMouseLeave={onMouseLeave}
@@ -471,7 +471,7 @@ const Products = () => {
               <div className="d-flex flex-column gap-3">
                 {products.map(p => {
                   const imageUrl = p.images?.[0] || p.image || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=500&q=80';
-                  const displayCategory = p.subCategory?.name || p.category?.name || 'Product';
+                  const displayCategory = p.subCategory?.name || p.category?.name || '';
                   return (
                     <div key={p._id || p.id} className="nex-glass-card d-flex flex-column flex-md-row align-items-md-center gap-4 p-4"
                       style={{ transition: 'border-color 0.2s' }}

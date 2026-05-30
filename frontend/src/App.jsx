@@ -52,7 +52,7 @@ function App() {
           <Route path="/categories" element={<Categories />} />
           <Route path="/deals" element={<Deals />} />
           <Route path="/profile" element={<Auth><Profile /></Auth>} />
-          <Route path="/cart" element={<Auth><Cart /></Auth>} />
+          <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Auth><Checkout /></Auth>} />
           <Route path="/orders" element={<Auth><OrderHistory /></Auth>} />
         </Route>

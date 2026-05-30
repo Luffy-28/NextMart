@@ -6,6 +6,7 @@ const productSlice = createSlice({
     products: [],
     categories: [],
     subCategories: [],
+    product: null,
     featuredProducts: [],
     trendingProducts: [],
     minPrice: 0,
@@ -22,6 +23,16 @@ const productSlice = createSlice({
   reducers: {
     setProducts: (state, action) => {
       state.products = action.payload;
+    },
+    setProduct: (state, action) => {
+      const product = action.payload;
+      state.product = product
+        ? {
+            ...product,
+            features: product.features || [],
+            images: product.images || [],
+          }
+        : null;
     },
     setPagination: (state, action) => {
       state.pagination.currentPage = action.payload.currentPage;
@@ -58,6 +69,7 @@ const productSlice = createSlice({
 
 export const {
   setProducts,
+  setProduct,
   setPagination,
   setSearch,
   setCategory,

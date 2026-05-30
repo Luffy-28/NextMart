@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
+import { getProductById } from '../features/product/productAction.js';
 
 const RELATED = [
   { id: 2, name: 'Running Shoes Pro X', basePrice: 129, rating: 4, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
@@ -14,15 +16,7 @@ const REVIEWS = [
   { id: 3, user: 'Priya K.', rating: 5, createdAt: 'Feb 14, 2025', comment: "Best headphones I've owned. The build quality is premium and the bass response is perfect. Highly recommend!" },
 ];
 
-const IMAGES = [
-  'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&q=80',
-  'https://images.unsplash.com/photo-1583394838336-acd977736f90?w=800&q=80',
-  'https://images.unsplash.com/photo-1618366712010-f4ae9c647dcb?w=800&q=80',
-  'https://images.unsplash.com/photo-1546435770-a3e426fa99e5?w=800&q=80',
-];
-
-const PRODUCT_COLOR = 'Midnight Black';
-const PRODUCT_SIZE = 'Standard';
+const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&q=80';
 
 const StarRating = ({ rating, size = 14 }) => (
   <span style={{ fontSize: size }}>
@@ -43,6 +37,8 @@ const specs = [
 ];
 
 const ProductDetails = () => {
+  const dispatch = useDispatch();
+  const { product } = useSelector((state) => state.productStore);
   const { id } = useParams();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -55,6 +51,20 @@ const ProductDetails = () => {
     setTimeout(() => setAddedToCart(false), 2000);
   };
 
+  useEffect(()=>{
+    dispatch(getProductById(id))
+  },[dispatch, id])
+
+  const productImages = product?.images?.length ? product.images : [FALLBACK_IMAGE];
+  const imageUrl = (image) => typeof image === 'string' ? image : image?.url || FALLBACK_IMAGE;
+  const categoryName = product?.category?.name || 'Products';
+  const subCategoryName = product?.subCategory?.name;
+  const displayCategory = subCategoryName || categoryName;
+  const displayPrice = product?.discountedPrice || product?.basePrice || 0;
+  const originalPrice = product?.discountedPrice ? product?.basePrice : null;
+  const savings = originalPrice ? originalPrice - displayPrice : 0;
+  const isInStock = (product?.stock || 0) > 0;
+
   return (
     <div style={{ background: 'var(--nex-bg)', minHeight: '100vh' }}>
       {/* Breadcrumb bar */}
@@ -65,9 +75,9 @@ const ProductDetails = () => {
             <span className="nex-breadcrumb-sep">›</span>
             <Link to="/products">Shop</Link>
             <span className="nex-breadcrumb-sep">›</span>
-            <Link to="/products?category=electronics">Electronics</Link>
-            <span className="nex-breadcrumb-sep">›</span>
-            <span className="nex-text-light fw-semibold">Wireless Headphones</span>
+	            <Link to={`/products?category=${product?.category?._id || ''}`}>{categoryName}</Link>
+	            <span className="nex-breadcrumb-sep">›</span>
+	            <span className="nex-text-light fw-semibold">{product?.name || 'Product details'}</span>
           </p>
         </div>
       </div>
@@ -80,70 +90,76 @@ const ProductDetails = () => {
             <div className="col-lg-6">
               <div style={{ position: 'sticky', top: 100 }}>
                 <div style={{ height: 480, borderRadius: 16, overflow: 'hidden', position: 'relative', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--nex-border)' }}>
-                  <img src={IMAGES[selectedImage]} alt="Product" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  <span className="position-absolute" style={{ top: 14, left: 14, background: '#EF4444', color: 'white', fontSize: '0.68rem', fontWeight: 700, padding: '4px 12px', borderRadius: 20 }}>BEST SELLER</span>
-                  <button onClick={() => setWishlist(w => !w)}
+	                  <img src={imageUrl(productImages[selectedImage])} alt={product?.name || 'Product'} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+	                  {product?.featured && <span className="position-absolute" style={{ top: 14, left: 14, background: '#EF4444', color: 'white', fontSize: '0.68rem', fontWeight: 700, padding: '4px 12px', borderRadius: 20 }}>FEATURED</span>}
+	                  <button onClick={() => setWishlist(w => !w)}
                     className="position-absolute d-flex align-items-center justify-content-center"
                     style={{ top: 12, right: 12, width: 40, height: 40, borderRadius: '50%', border: '1px solid var(--nex-border)', background: 'rgba(7,7,15,0.7)', backdropFilter: 'blur(8px)', cursor: 'pointer', fontSize: '1.1rem' }}>
                     <i className={`bi ${wishlist ? 'bi-heart-fill' : 'bi-heart'}`} style={{ color: wishlist ? '#F472B6' : 'rgba(240,244,255,0.6)' }} />
                   </button>
-                </div>
-                <div className="d-flex gap-2 mt-3 overflow-auto pb-1">
-                  {IMAGES.map((img, i) => (
-                    <div key={i} onClick={() => setSelectedImage(i)}
-                      style={{
-                        width: 80, height: 70, flexShrink: 0, borderRadius: 10, overflow: 'hidden', cursor: 'pointer',
-                        border: `2px solid ${selectedImage === i ? 'var(--nex-purple)' : 'var(--nex-border)'}`,
-                        opacity: selectedImage === i ? 1 : 0.55, transition: 'all 0.2s'
-                      }}>
-                      <img src={img} alt={`thumb ${i}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+	                </div>
+	                {productImages.length > 1 && (
+	                  <div className="d-flex gap-3 mt-3 flex-wrap">
+	                    {productImages.map((image, index) => (
+	                      <button
+	                        key={`${imageUrl(image)}-${index}`}
+	                        onClick={() => setSelectedImage(index)}
+	                        style={{ width: 78, height: 78, borderRadius: 10, overflow: 'hidden', border: selectedImage === index ? '2px solid var(--nex-purple)' : '1px solid var(--nex-border)', background: 'rgba(255,255,255,0.03)', padding: 0, cursor: 'pointer' }}
+	                      >
+	                        <img src={imageUrl(image)} alt={`${product?.name || 'Product'} ${index + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+	                      </button>
+	                    ))}
+	                  </div>
+	                )}
+	              </div>
+	            </div>
 
             {/* Product info */}
             <div className="col-lg-6">
               <div className="d-flex align-items-center gap-2 mb-3">
-                <span className="nex-status nex-status-blue">Electronics</span>
+	                <span className="nex-status nex-status-blue">{displayCategory}</span>
+	                {product?.brand && <span className="nex-status">{product.brand}</span>}
               </div>
 
               <h1 className="nex-text-light fw-bold mb-3" style={{ fontSize: '1.85rem', lineHeight: 1.2 }}>
-                Wireless Noise-Cancelling Headphones
+                {product?.name}
               </h1>
 
               <div className="d-flex align-items-center gap-3 mb-4 pb-4" style={{ borderBottom: '1px solid var(--nex-border)' }}>
-                <StarRating rating={5} size={16} />
-                <span className="nex-text-light fw-bold">5.0</span>
-                <span className="nex-text-muted" style={{ fontSize: '0.85rem' }}>(128 reviews)</span>
-                <span className="nex-status nex-status-green ms-auto"><i className="bi bi-check-circle-fill me-1" />In Stock</span>
-              </div>
+                <StarRating rating={product?.rating} size={16} />
+                <span className="nex-text-light fw-bold">{product?.rating}</span>
+	                <span className="nex-text-muted" style={{ fontSize: '0.85rem' }}>({product?.reviewCount || 0} reviews)</span>
+	                <span className={`nex-status ${isInStock ? 'nex-status-green' : 'nex-status-red'} ms-auto`}><i className={`bi ${isInStock ? 'bi-check-circle-fill' : 'bi-x-circle-fill'} me-1`} />{isInStock ? 'In Stock' : 'Out of Stock'}</span>
+	              </div>
 
-              <div className="d-flex align-items-end gap-3 mb-4">
-                <span className="nex-text-light fw-bold" style={{ fontSize: '2.8rem', lineHeight: 1 }}>$349</span>
-                <span className="nex-text-muted text-decoration-line-through mb-1" style={{ fontSize: '1.2rem' }}>$449</span>
-                <span className="nex-status nex-status-red mb-1">Save $100</span>
-              </div>
+	              <div className="d-flex align-items-end gap-3 mb-4">
+	                <span className="nex-text-light fw-bold" style={{ fontSize: '2.8rem', lineHeight: 1 }}>${displayPrice}</span>
+	                {originalPrice && <span className="nex-text-muted text-decoration-line-through mb-1" style={{ fontSize: '1.2rem' }}>${originalPrice}</span>}
+	                {savings > 0 && <span className="nex-status nex-status-red mb-1">Save ${savings}</span>}
+	              </div>
 
               <p className="nex-text-muted mb-5" style={{ lineHeight: 1.7, fontSize: '0.92rem' }}>
-                Experience studio-quality sound wherever you go. Industry-leading active noise cancellation, 30-hour battery life, and premium drivers for crystal-clear highs and deep, rich bass.
+                {product?.description}
               </p>
 
               {/* Color & size info */}
               <div className="mb-5 pb-4 d-flex gap-4 flex-wrap" style={{ borderBottom: '1px solid var(--nex-border)' }}>
-                <div>
-                  <p className="nex-form-label mb-1">Color</p>
-                  <div className="d-flex align-items-center gap-2">
-                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1F2937', border: '1px solid rgba(255,255,255,0.2)' }} />
-                    <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{PRODUCT_COLOR}</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="nex-form-label mb-1">Size</p>
-                  <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{PRODUCT_SIZE}</span>
-                </div>
-              </div>
+	                {product?.color && <div>
+	                  <p className="nex-form-label mb-1">Color</p>
+	                  <div className="d-flex align-items-center gap-2">
+	                    <div style={{ width: 16, height: 16, borderRadius: '50%', background: '#1F2937', border: '1px solid rgba(255,255,255,0.2)' }} />
+	                    <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{product?.color}</span>
+	                  </div>
+	                </div>}
+	                {product?.size && <div>
+	                  <p className="nex-form-label mb-1">Size</p>
+	                  <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{product?.size}</span>
+	                </div>}
+	                <div>
+	                  <p className="nex-form-label mb-1">Stock</p>
+	                  <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{product?.stock || 0} available</span>
+	                </div>
+	              </div>
 
               {/* Quantity + CTAs */}
               <div className="d-flex align-items-center gap-3 mb-5 flex-wrap">
@@ -152,9 +168,10 @@ const ProductDetails = () => {
                   <span className="nex-qty-num">{quantity}</span>
                   <button className="nex-qty-btn" onClick={() => setQuantity(q => q + 1)}>+</button>
                 </div>
-                <button className={`flex-grow-1 ${addedToCart ? 'nex-btn-primary' : 'nex-btn-primary'} justify-content-center`}
-                  style={{ padding: '13px 24px', background: addedToCart ? 'linear-gradient(135deg,#10b981,#059669)' : undefined }}
-                  onClick={handleAddToCart}>
+	                <button className={`flex-grow-1 ${addedToCart ? 'nex-btn-primary' : 'nex-btn-primary'} justify-content-center`}
+	                  style={{ padding: '13px 24px', background: addedToCart ? 'linear-gradient(135deg,#10b981,#059669)' : undefined }}
+	                  onClick={handleAddToCart}
+	                  disabled={!isInStock}>
                   {addedToCart ? <><i className="bi bi-check-lg me-2" />Added!</> : <><i className="bi bi-bag-plus me-2" />Add to Cart</>}
                 </button>
                 <Link to="/checkout" className="nex-btn-outline justify-content-center" style={{ padding: '13px 24px' }}>
@@ -204,10 +221,10 @@ const ProductDetails = () => {
             <div style={{ maxWidth: 740 }}>
               <h5 className="nex-text-light fw-bold mb-4">About This Product</h5>
               <p className="nex-text-muted mb-4" style={{ lineHeight: 1.8 }}>
-                The NexMart Wireless Noise-Cancelling Headphones redefine premium audio. Engineered with advanced ANC technology that adapts to your environment, blocking up to 95% of ambient noise.
+                {product?.description}
               </p>
               <ul className="d-flex flex-column gap-2 ps-3">
-                {['Industry-leading Active Noise Cancellation', 'Up to 30 hours playtime (ANC on)', 'Fast charge: 10 min = 3 hours play', 'Multipoint Bluetooth — connect 2 devices', 'Built-in voice assistant support', 'Premium carrying case included'].map((f, i) => (
+                {product?.features.map((f, i) => (
                   <li key={i} className="nex-text-muted" style={{ fontSize: '0.9rem', lineHeight: 1.6 }}>{f}</li>
                 ))}
               </ul>
@@ -217,7 +234,7 @@ const ProductDetails = () => {
           {selectedTab === 'specs' && (
             <div style={{ maxWidth: 640 }}>
               <h5 className="nex-text-light fw-bold mb-4">Technical Specifications</h5>
-              {specs.map((spec, i) => (
+              {product?.specifications?.map((spec, i) => (
                 <div key={i} className="d-flex py-3" style={{ borderBottom: i < specs.length - 1 ? '1px solid var(--nex-border)' : 'none' }}>
                   <span className="nex-text-light fw-semibold" style={{ width: 220, flexShrink: 0, fontSize: '0.88rem' }}>{spec.label}</span>
                   <span className="nex-text-muted" style={{ fontSize: '0.88rem' }}>{spec.value}</span>

@@ -68,6 +68,8 @@ export const getProducts = async (req, res) => {
         .sort(sortOption)
         .skip(skip)
         .limit(parseInt(limit))
+        .populate({ path: "category", select: "name slug" })
+        .populate({ path: "subCategory", select: "name slug" })
         .select("-__v -updatedAt")
         .lean(),
       Product.countDocuments(query),
@@ -93,7 +95,11 @@ export const getProducts = async (req, res) => {
 
 export const getProductById = async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).select("-__v").lean();
+    const product = await Product.findById(req.params.id)
+      .populate({ path: "category", select: "name slug" })
+      .populate({ path: "subCategory", select: "name slug" })
+      .select("-__v")
+      .lean();
     if (!product) {
       return res.status(404).send({
         status: "error",

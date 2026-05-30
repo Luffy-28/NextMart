@@ -9,6 +9,7 @@ import {
   setMaxPrice,
   setMinPrice,
   setPagination,
+  setProduct,
   setProducts,
   setRating,
   setSearch,
@@ -80,6 +81,7 @@ export const getProductsByTags = (tags, page, limit) => async (dispatch) => {
 export const getProductById = (id) => async (dispatch) => {
   const data = await getProductByIdApi(id);
   if (data.status == "success") {
+    dispatch(setProduct(data.data));
     return data;
   }
 };

@@ -435,6 +435,43 @@ const productTemplates = [
   },
 ];
 
+const formatCurrency = (amount) => `$${amount}`;
+
+const buildFeatures = (product) => {
+  const features = [
+    `${product.brand} quality in the ${product.subCategoryName} range`,
+    product.discountedPrice
+      ? `Save ${formatCurrency(product.basePrice - product.discountedPrice)} from the regular price`
+      : "Everyday value pricing",
+    `${product.stock} units available for fast fulfilment`,
+  ];
+
+  if (product.color) features.push(`Available in ${product.color}`);
+  if (product.size) features.push(`Size option: ${product.size}`);
+  if (product.featured) features.push("Featured product selected by our team");
+  if (product.tags?.length) {
+    features.push(`Tagged as ${product.tags.join(", ")}`);
+  }
+
+  return features;
+};
+
+const buildSpecifications = (product) => {
+  const specifications = [
+    { label: "Brand", value: product.brand },
+    { label: "Category", value: product.categoryName },
+    { label: "Subcategory", value: product.subCategoryName },
+    { label: "Price", value: formatCurrency(product.discountedPrice || product.basePrice) },
+    { label: "Stock", value: `${product.stock} units` },
+    { label: "Rating", value: `${product.rating}/5 from ${product.reviewCount} reviews` },
+  ];
+
+  if (product.color) specifications.push({ label: "Color", value: product.color });
+  if (product.size) specifications.push({ label: "Size", value: product.size });
+
+  return specifications;
+};
+
 // ─── DEAL TEMPLATES ──────────────────────────────────────────────────────────
 
 const dealTemplates = [
@@ -538,6 +575,8 @@ const seed = async () => {
 
       productDocs.push({
         ...fields,
+        features: fields.features || buildFeatures(tmpl),
+        specifications: fields.specifications || buildSpecifications(tmpl),
         slug,
         category: catEntry.id,
         subCategory: subCategoryName ? catEntry.subs[subCategoryName] : undefined,
