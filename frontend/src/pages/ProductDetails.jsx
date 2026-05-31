@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 import { getProductById } from '../features/product/productAction.js';
+import { addToCart } from '../features/cart/cartAction.js';
 
 const RELATED = [
   { id: 2, name: 'Running Shoes Pro X', basePrice: 129, rating: 4, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
@@ -38,7 +39,6 @@ const specs = [
 
 const ProductDetails = () => {
   const dispatch = useDispatch();
-  const { product } = useSelector((state) => state.productStore);
   const { id } = useParams();
   const [selectedImage, setSelectedImage] = useState(0);
   const [quantity, setQuantity] = useState(1);
@@ -46,10 +46,28 @@ const ProductDetails = () => {
   const [addedToCart, setAddedToCart] = useState(false);
   const [wishlist, setWishlist] = useState(false);
 
-  const handleAddToCart = () => {
-    setAddedToCart(true);
-    setTimeout(() => setAddedToCart(false), 2000);
-  };
+  //redux store
+   const { product } = useSelector((state) => state.productStore);
+   const {items: cartItems} = useSelector((state) => state.cartStore);
+
+  // const handleAddToCart = () => {
+  //   setAddedToCart(true);
+  //   setTimeout(() => setAddedToCart(false), 2000);
+  // };
+
+  // load cart to data base 
+  
+    const handleAddToCart = async (productId, quantity) => {
+      const data = await dispatch(addToCart({ productId, quantity }));
+      if (data?.status === 'success') {
+        setAddedToCart(p => ({ ...p, [productId]: true }));
+        setTimeout(() => setAddedToCart(p => ({ ...p, [productId]: false })), 1500);
+        toast.success('Item added to cart');
+      } else {
+        toast.error(data?.message || 'Failed to add item to cart');
+      }
+    };
+  
 
   useEffect(()=>{
     dispatch(getProductById(id))
@@ -170,7 +188,7 @@ const ProductDetails = () => {
                 </div>
 	                <button className={`flex-grow-1 ${addedToCart ? 'nex-btn-primary' : 'nex-btn-primary'} justify-content-center`}
 	                  style={{ padding: '13px 24px', background: addedToCart ? 'linear-gradient(135deg,#10b981,#059669)' : undefined }}
-	                  onClick={handleAddToCart}
+	                  onClick={()=>handleAddToCart(product._id,quantity)}
 	                  disabled={!isInStock}>
                   {addedToCart ? <><i className="bi bi-check-lg me-2" />Added!</> : <><i className="bi bi-bag-plus me-2" />Add to Cart</>}
                 </button>

@@ -59,14 +59,14 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/auth", authLimiter, authRouter);
-app.use("/api/v1/users", generalLimiter, userRouter);
-app.use("/api/v1/products", generalLimiter, productRouter);
-app.use("/api/v1/categories", generalLimiter, categoryRouter);
-app.use("/api/v1/subcategories", generalLimiter, subCategoryRouter);
-app.use("/api/v1/deals", generalLimiter, dealRouter);
-app.use("/api/v1/orders", generalLimiter, orderRouter);
+app.use("/api/v1/users", userRouter);
+app.use("/api/v1/products", productRouter);
+app.use("/api/v1/categories", categoryRouter);
+app.use("/api/v1/subcategories", subCategoryRouter);
+app.use("/api/v1/deals", dealRouter);
+app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payments", paymentLimiter, paymentRouter);
-app.use("/api/v1/carts", generalLimiter, cartRouter);
+app.use("/api/v1/carts", cartRouter);
 app.use("/api/v1/reviews", generalLimiter, reviewRouter);
 
 // Setup Swagger API Documentation

@@ -2,9 +2,11 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
+import { toast } from 'react-toastify';
 import { fetchAllProducts } from '../features/product/productAction.js';
 import { fetchAllActiveCategory } from '../features/category/categoryAction.js';
 import { fetchAllActiveSubCategory } from '../features/subCategory/subCategoryAction.js';
+import { addToCart } from '../features/cart/cartAction.js';
 
 const BADGE_COLOR = { 'Best Seller': '#8B5CF6', 'Sale': '#EF4444', 'New': '#06B6D4' };
 
@@ -208,11 +210,26 @@ const Products = () => {
   const { products, pagination } = useSelector((state) => state.productStore);
   const { categories } = useSelector((state) => state.categoryStore);
   const { subCategories } = useSelector((state) => state.subCategoryStore);
+  const { items: cartItems } = useSelector((state) => state.cartStore);
 
   // Load all categories on mount
   useEffect(() => {
     dispatch(fetchAllActiveCategory());
   }, [dispatch]);
+
+
+  // load cart to data base 
+
+  const handleAddToCart = async (productId, quantity = 1) => {
+    const data = await dispatch(addToCart({ productId, quantity }));
+    if (data?.status === 'success') {
+      setAddedToCart(p => ({ ...p, [productId]: true }));
+      setTimeout(() => setAddedToCart(p => ({ ...p, [productId]: false })), 1500);
+      toast.success('Item added to cart');
+    } else {
+      toast.error(data?.message || 'Failed to add item to cart');
+    }
+  };
 
   // Synchronize category search parameters
   useEffect(() => {
@@ -281,10 +298,10 @@ const Products = () => {
     setSelectedSubcategory('All');
   };
 
-  const handleAddToCart = (id) => {
-    setAddedToCart(p => ({ ...p, [id]: true }));
-    setTimeout(() => setAddedToCart(p => ({ ...p, [id]: false })), 1500);
-  };
+  // const handleAddToCart = (id) => {
+  //   setAddedToCart(p => ({ ...p, [id]: true }));
+  //   setTimeout(() => setAddedToCart(p => ({ ...p, [id]: false })), 1500);
+  // };
 
   const clearFilters = () => {
     setCurrentPage(1);
@@ -492,7 +509,7 @@ const Products = () => {
                           {p.discountedPrice && <span className="nex-text-muted d-block text-decoration-line-through" style={{ fontSize: '0.82rem' }}>${p.discountedPrice}</span>}
                           <span className="nex-text-light fw-bold" style={{ fontSize: '1.3rem' }}>${p.basePrice}</span>
                         </div>
-                        <button onClick={() => handleAddToCart(p._id || p.id)} className={addedToCart[p._id || p.id] ? 'nex-btn-primary' : 'nex-btn-outline'} style={{ padding: '8px 18px', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
+                        <button onClick={() => handleAddToCart(p._id || p.id, 1)} className={addedToCart[p._id || p.id] ? 'nex-btn-primary' : 'nex-btn-outline'} style={{ padding: '8px 18px', fontSize: '0.84rem', whiteSpace: 'nowrap' }}>
                           {addedToCart[p._id || p.id] ? '✓ Added' : '+ Cart'}
                         </button>
                       </div>

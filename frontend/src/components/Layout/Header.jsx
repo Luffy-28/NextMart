@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Navbar, Container, Nav, Dropdown } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
@@ -14,11 +14,13 @@ import {
 } from "react-icons/fi";
 import { setUser } from "../../features/user/userSlice";
 import { toggleTheme } from "../../features/theme/themeSlice";
+import { getCart } from "../../features/cart/cartAction";
 
 const Header = () => {
+  const dispatch = useDispatch();
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const {items: cartItems, totalItems} = useSelector((state) => state.cartStore);
   const [navExpanded, setNavExpanded] = useState(false);
 
   const { user } = useSelector((state) => state.userStore);
@@ -35,6 +37,10 @@ const Header = () => {
     dispatch(setUser({}));
     navigate("/login");
   };
+
+  useEffect(() =>{
+    dispatch(getCart())
+  },[dispatch])
 
   const navLinks = [
     { to: "/", label: "Home" },
@@ -89,7 +95,7 @@ const Header = () => {
               }}
             >
               <FiShoppingBag size={21} />
-              <span className="nex-nav-badge">3</span>
+              <span className="nex-nav-badge">{totalItems > 0 ? totalItems : 0}</span>
             </Link>
           )}
 

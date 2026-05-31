@@ -1,25 +1,71 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import { getCart, removeFromCart, updateCartQuantity } from '../features/cart/cartAction.js';
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
 
 const INITIAL_ITEMS = [
-  { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
-  { id: 2, name: 'Running Shoes Pro X', price: 129, quantity: 2, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
-  { id: 3, name: 'Ergonomic Laptop Stand', price: 89, quantity: 1, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
+//   { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
+//   { id: 2, name: 'Running Shoes Pro X', price: 129, quantity: 2, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
+//   { id: 3, name: 'Ergonomic Laptop Stand', price: 89, quantity: 1, image: 'https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=500&q=80' },
+// ];
 ];
 
 const Cart = () => {
-  const [items, setItems] = useState(INITIAL_ITEMS);
+  const dispatch = useDispatch();
   const [coupon, setCoupon] = useState('');
   const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [couponError, setCouponError] = useState('');
 
-  const updateQty = (id, delta) => setItems(prev => prev.map(item => item.id === id ? { ...item, quantity: Math.max(1, item.quantity + delta) } : item));
-  const removeItem = (id) => setItems(prev => prev.filter(item => item.id !== id));
+  // redux store
+  const { items: cartItems, totalAmount } = useSelector((state) => state.cartStore);
 
-  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const shipping = subtotal >= 1000 ? 0 : 9.99;
+  // tracks which productId is waiting for remove confirmation (null = dialog closed)
+  const [pendingRemoveId, setPendingRemoveId] = useState(null);
+
+  const subtotal = totalAmount || 0;
+  const shipping = subtotal >= 100 ? 0 : 15.99;
   const discount = appliedCoupon ? Math.round(subtotal * 0.15) : 0;
   const total = subtotal + shipping - discount;
+
+  const increaseQty = async(productId) =>{
+    const item = cartItems.find(i => (i.product?._id || i.product) === productId);
+    if (!item) return;
+    const newQty = item.quantity+1;
+    await dispatch(updateCartQuantity({productId, quantity:newQty}))
+    dispatch(getCart());
+
+  }
+  const decreaseQty = async (productId) => {
+    const item = cartItems.find(i => (i.product?._id || i.product) === productId);
+    if (!item) return;
+    if (item.quantity > 1) {
+      const newQty = item.quantity - 1;
+      await dispatch(updateCartQuantity({ productId, quantity: newQty }));
+      dispatch(getCart());
+    } else {
+      // quantity would hit 0 — open confirm dialog instead of removing directly
+      setPendingRemoveId(productId);
+    }
+  };
+  // const updateQty = async (productId, delta) => {
+  //   const item = cartItems.find(i => (i.product?._id || i.product) === productId);
+  //   if (!item) return;
+  //   const newQty = Math.max(1, item.quantity + delta);
+  //   await dispatch(updateCartQuantity({ productId, quantity: newQty }));
+  //   dispatch(getCart());
+  // };
+
+  const removeItem = async (productId) => {
+    await dispatch(removeFromCart(productId));
+  };
+
+
+  //get cart items from redux store
+  useEffect(() =>{
+    dispatch(getCart());
+  },[])
+  
 
   const handleCoupon = () => {
     if (coupon.toUpperCase() === 'NEXMART15') {
@@ -32,7 +78,7 @@ const Cart = () => {
     }
   };
 
-  if (items.length === 0) {
+  if (cartItems.length === 0) {
     return (
       <div style={{ background: 'var(--nex-bg)', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '60px 20px' }}>
         <i className="bi bi-cart-x nex-text-muted mb-4 d-block" style={{ fontSize: '5rem', opacity: 0.35 }} />
@@ -64,49 +110,51 @@ const Cart = () => {
           <div className="col-lg-8">
             <div className="nex-glass-card p-4 p-md-5 mb-4">
               <div className="d-flex align-items-center justify-content-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--nex-border)' }}>
-                <h5 className="nex-text-light fw-bold mb-0">Cart Items ({items.length})</h5>
+                <h5 className="nex-text-light fw-bold mb-0">Cart Items ({cartItems.length})</h5>
                 <Link to="/products" className="nex-gradient-text text-decoration-none fw-semibold" style={{ fontSize: '0.88rem' }}>← Continue Shopping</Link>
               </div>
-
               <div className="d-flex flex-column gap-4">
-                {items.map((item, idx) => (
-                  <div key={item.id} className="d-flex flex-column flex-md-row gap-4 align-items-md-center position-relative pb-4"
-                    style={{ borderBottom: idx < items.length - 1 ? '1px solid var(--nex-border)' : 'none' }}>
-                    <Link to={`/products/${item.id}`} className="flex-shrink-0">
+                {cartItems.map((item, idx) => {
+                  const productId = item.product?._id || item.product;
+                  return (
+                  <div key={productId || idx} className="d-flex flex-column flex-md-row gap-4 align-items-md-center position-relative pb-4"
+                    style={{ borderBottom: idx < cartItems.length - 1 ? '1px solid var(--nex-border)' : 'none' }}>
+                    <Link to={`/products/${productId}`} className="flex-shrink-0">
                       <div style={{ width: 96, height: 96, borderRadius: 12, overflow: 'hidden', border: '1px solid var(--nex-border)' }}>
                         <img src={item.image} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                       </div>
                     </Link>
 
                     <div className="flex-grow-1">
-                      <Link to={`/products/${item.id}`} className="text-decoration-none d-block">
+                      <Link to={`/products/${productId}`} className="text-decoration-none d-block">
                         <p className="nex-text-light fw-bold mb-1" style={{ fontSize: '0.95rem' }}>{item.name}</p>
                       </Link>
                     </div>
 
-                    <div className="nex-qty">
-                      <button className="nex-qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
-                      <span className="nex-qty-num">{item.quantity}</span>
-                      <button className="nex-qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
+                    <div className="nex-qty flex-shrink-0 align-self-start align-self-md-center">
+                      <button className="nex-qty-btn" onClick={() => decreaseQty(productId)}>−</button>
+                       <span className="nex-qty-num">{item.quantity}</span>
+                      <button className="nex-qty-btn" onClick={() => increaseQty(productId)}>+</button>
                     </div>
 
-                    <div className="text-md-end" style={{ minWidth: 80 }}>
+                    <div className="text-md-end flex-shrink-0" style={{ minWidth: 80 }}>
                       <p className="nex-text-muted mb-0" style={{ fontSize: '0.75rem' }}>Unit</p>
-                      <p className="nex-text-light fw-semibold mb-0">${item.price}</p>
+                      <p className="nex-text-light fw-semibold mb-0">${item.price?.toFixed(2)}</p>
                     </div>
 
-                    <div className="text-md-end" style={{ minWidth: 90 }}>
+                    <div className="text-md-end flex-shrink-0" style={{ minWidth: 90 }}>
                       <p className="nex-text-muted mb-0" style={{ fontSize: '0.75rem' }}>Total</p>
                       <p className="nex-gradient-text fw-bold mb-0" style={{ fontSize: '1.1rem' }}>${(item.price * item.quantity).toFixed(2)}</p>
                     </div>
 
-                    <button onClick={() => removeItem(item.id)}
+                    <button onClick={() => removeItem(productId)}
                       className="position-absolute d-flex align-items-center justify-content-center"
                       style={{ top: -6, right: -6, width: 28, height: 28, borderRadius: '50%', border: '1px solid var(--nex-border)', background: 'rgba(239,68,68,0.1)', color: '#f87171', cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}>
                       ×
                     </button>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -156,7 +204,7 @@ const Cart = () => {
               <h5 className="nex-text-light fw-bold mb-4 pb-3" style={{ borderBottom: '1px solid var(--nex-border)', fontSize: '1.1rem' }}>Order Summary</h5>
 
               <div className="nex-summary-row">
-                <span className="nex-text-muted">Subtotal ({items.reduce((s, i) => s + i.quantity, 0)} items)</span>
+                <span className="nex-text-muted">Subtotal ({cartItems.reduce((s, i) => s + i.quantity, 0)} items)</span>
                 <span className="nex-text-light fw-bold">${subtotal.toFixed(2)}</span>
               </div>
               <div className="nex-summary-row">
@@ -176,7 +224,7 @@ const Cart = () => {
                 <div className="d-flex align-items-center gap-3 my-3 px-3 py-2 rounded" style={{ background: 'rgba(139,92,246,0.07)', border: '1px solid rgba(139,92,246,0.15)', borderRadius: 10 }}>
                   <i className="bi bi-truck nex-text-purple" style={{ fontSize: '1.1rem' }} />
                   <span className="nex-text-muted" style={{ fontSize: '0.8rem' }}>
-                    Add <strong className="nex-gradient-text">${(1000 - subtotal).toFixed(2)}</strong> more for <strong style={{ color: '#34d399' }}>FREE shipping</strong>
+                    Add <strong className="nex-gradient-text">${(100 - subtotal).toFixed(2)}</strong> more for <strong style={{ color: '#34d399' }}>FREE shipping</strong>
                   </span>
                 </div>
               )}
@@ -213,6 +261,22 @@ const Cart = () => {
           </div>
         </div>
       </div>
+      {/* Remove item confirmation dialog */}
+      <ConfirmDialog
+        isOpen={pendingRemoveId !== null}
+        onClose={() => setPendingRemoveId(null)}
+        onConfirm={async () => {
+          await dispatch(removeFromCart(pendingRemoveId));
+          dispatch(getCart());
+          setPendingRemoveId(null);
+        }}
+        title="Remove item?"
+        message="This item will be permanently removed from your cart."
+        confirmText="Remove"
+        cancelText="Keep it"
+        confirmVariant="danger"
+        icon="bi-trash3"
+      />
     </div>
   );
 };

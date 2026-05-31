@@ -86,7 +86,7 @@ export const createOrder = async (req, res) => {
       0,
     );
     const tax = Math.round(subtotal * 0.1);
-    const shippingFee = subtotal > 50 ? 0 : 15;
+    const shippingFee = subtotal > 100 ? 0 : 15.99;
     const total = subtotal + tax + shippingFee;
     const order = await Order.create({
       user: userId,
