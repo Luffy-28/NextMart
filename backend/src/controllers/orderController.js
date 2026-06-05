@@ -124,6 +124,7 @@ export const createOrder = async (req, res) => {
     return res.status(201).send({
       status: "success",
       message: "Order created successfully",
+      data: order,
     });
   } catch (error) {
     console.error("Create order error:", error);

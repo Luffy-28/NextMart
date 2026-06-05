@@ -5,6 +5,7 @@ import productReducer from "../features/product/productSlice.js"
 import categoryReducer from "../features/category/categorySlice.js";
 import subCategoryReducer from "../features/subCategory/subCategorySlice.js";
 import cartReducer from "../features/cart/cartSlice.js"
+import paymentReducer from "../features/payment/paymentSlice.js"
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     categoryStore: categoryReducer,
     subCategoryStore: subCategoryReducer,
     cartStore: cartReducer,
+    paymentStore: paymentReducer,
   },
 });

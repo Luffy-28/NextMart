@@ -20,7 +20,7 @@ export const createPaymentIntent = async (req, res) => {
       });
     }
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: order.totalAmount * 100, //convert to cents
+      amount: Math.round(order.totalAmount * 100), //convert to cents
       currency: "aud",
       metadata: { orderId: order._id.toString() },
     });
@@ -36,6 +36,7 @@ export const createPaymentIntent = async (req, res) => {
       status: "success",
       message: "payment intent created successfully",
       data: {
+        payment,
         clientSecret: paymentIntent.client_secret,
         paymentIntent: paymentIntent.id,
       },
@@ -45,6 +46,57 @@ export const createPaymentIntent = async (req, res) => {
     return res.status(500).send({
       status: "error",
       message: "failed to create payemt intent",
+    });
+  }
+};
+
+
+export const confirmPayment = async (req, res) => {
+  try {
+    const { paymentIntentId } = req.body;
+    if (!paymentIntentId) {
+      return res.status(400).send({
+        status: "error",
+        message: "Payment Intent ID is required",
+      });
+    }
+
+    // Retrieve the payment intent from Stripe directly to verify status
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    if (paymentIntent.status === "succeeded") {
+      const orderId = paymentIntent.metadata.orderId;
+
+      // Update Order Status to confirmed & paid
+      const order = await Order.findByIdAndUpdate(
+        orderId,
+        { paymentStatus: "paid", orderStatus: "confirmed" },
+        { new: true }
+      );
+
+      // Update Payment Record in DB
+      const payment = await Payment.findOneAndUpdate(
+        { transactionId: paymentIntentId },
+        { status: "succeeded", paidAt: new Date() },
+        { new: true }
+      );
+
+      return res.status(200).send({
+        status: "success",
+        message: "Payment verified and completed successfully",
+        data: { order, payment },
+      });
+    } else {
+      return res.status(400).send({
+        status: "error",
+        message: `Payment status verification failed. Stripe status: ${paymentIntent.status}`,
+      });
+    }
+  } catch (error) {
+    console.error("Confirm payment error:", error);
+    return res.status(500).send({
+      status: "error",
+      message: "Failed to confirm payment details",
     });
   }
 };
