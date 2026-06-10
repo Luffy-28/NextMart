@@ -40,19 +40,6 @@ export const saveAddress = (address) => async (dispatch) => {
   return data; // caller handles error toast
 };
 
-// ── Create order
-export const createOrder = (payload) => async (dispatch) => {
-  dispatch(setLoading(true));
-  const data = await createOrderApi(payload);
-  dispatch(setLoading(false));
-  if (data.status === "success") {
-    dispatch(setPendingOrderId(data.data._id));
-    return data;
-  }
-  dispatch(setError(data.message || "Failed to create order"));
-  return data;
-};
-
 // ── Create payment intent 
 export const createPaymentIntent = (orderId) => async (dispatch) => {
   dispatch(setLoading(true));

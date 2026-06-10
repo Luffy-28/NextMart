@@ -60,9 +60,13 @@ export const addTocart = async (req, res) => {
       cart = new Cart({ user: userId, items: [] });
     }
 
-    const existingItemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId,
-    );
+    const existingItemIndex = cart.items.findIndex((item) => {
+      if (!item || item.product == null) return false;
+      const prod = item.product;
+      // handle ObjectId, populated doc, or plain object
+      const idStr = prod._id ? prod._id.toString() : prod.toString();
+      return idStr === productId;
+    });
 
     const currentQtyInCart =
       existingItemIndex > -1 ? cart.items[existingItemIndex].quantity : 0;
@@ -82,6 +86,8 @@ export const addTocart = async (req, res) => {
         product: productId,
         name: product.name,
         image: (product.images && product.images[0]) || "",
+        color: product.color,
+        size: product.size,
         price: product.discountedPrice || product.basePrice,
         quantity: qty,
       });
@@ -152,9 +158,12 @@ export const updateCartQuantity = async (req, res) => {
       });
     }
 
-    const itemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId,
-    );
+    const itemIndex = cart.items.findIndex((item) => {
+      if (!item || item.product == null) return false;
+      const prod = item.product;
+      const idStr = prod._id ? prod._id.toString() : prod.toString();
+      return idStr === productId;
+    });
 
     if (itemIndex === -1) {
       return res.status(404).send({
@@ -208,9 +217,12 @@ export const removeFromCart = async (req, res) => {
     }
 
     const initialLength = cart.items.length;
-    cart.items = cart.items.filter(
-      (item) => item.product.toString() !== productId,
-    );
+    cart.items = cart.items.filter((item) => {
+      if (!item || item.product == null) return true;
+      const prod = item.product;
+      const idStr = prod._id ? prod._id.toString() : prod.toString();
+      return idStr !== productId;
+    });
 
     if (cart.items.length === initialLength) {
       return res.status(404).send({

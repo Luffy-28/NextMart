@@ -21,17 +21,6 @@ export const addAddressApi = async (address) => {
 }
 
 
-//createOrderApi
-export const createOrderApi = async (orderPayload) => {
-  return apiProcessor({
-    url: `${import.meta.env.VITE_ROOT_URL}/api/v1/orders/create`,
-    method: "POST",
-    data: orderPayload,
-    isPrivate: true,
-  });
-}
-
-
 
 //create payment intent
 export const createPaymentIntentApi =async (orderId) =>{

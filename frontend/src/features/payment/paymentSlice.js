@@ -11,9 +11,6 @@ const paymentSlice = createSlice({
     addresses: [],
     selectedAddressId: null,
 
-    // Order created before payment
-    pendingOrderId: null,
-
     // UI flags
     loading: false,
     error: null,
@@ -40,15 +37,6 @@ const paymentSlice = createSlice({
       state.clientSecret = null;
       state.paymentIntentId = null;
     },
-
-    // Pending order
-    setPendingOrderId: (state, action) => {
-      state.pendingOrderId = action.payload;
-    },
-    clearPendingOrder: (state) => {
-      state.pendingOrderId = null;
-    },
-
     // Status
     setPaymentStatus: (state, action) => {
       state.paymentStatus = action.payload;
@@ -79,8 +67,6 @@ export const {
   setSelectedAddressId,
   setPaymentIntent,
   clearPaymentIntent,
-  setPendingOrderId,
-  clearPendingOrder,
   setPaymentStatus,
   setLoading,
   setError,
