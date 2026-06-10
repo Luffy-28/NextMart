@@ -3,7 +3,6 @@ import {
   addAddress,
   setSelectedAddressId,
   setPaymentIntent,
-  setPendingOrderId,
   setPaymentStatus,
   setLoading,
   setError,
@@ -12,12 +11,11 @@ import {
 import {
   getAddressesApi,
   addAddressApi,
-  createOrderApi,
   createPaymentIntentApi,
   confirmPaymentApi,
 } from "./paymentApi.js";
 
-// ── Fetch all saved addresses 
+// ── Fetch all saved addresses
 export const fetchAddresses = () => async (dispatch) => {
   const data = await getAddressesApi();
   if (data.status === "success") {
@@ -29,7 +27,7 @@ export const fetchAddresses = () => async (dispatch) => {
   }
 };
 
-// ── Save a new address 
+// ── Save a new address
 export const saveAddress = (address) => async (dispatch) => {
   const data = await addAddressApi(address);
   if (data.status === "success") {
@@ -40,7 +38,7 @@ export const saveAddress = (address) => async (dispatch) => {
   return data; // caller handles error toast
 };
 
-// ── Create payment intent 
+// ── Create payment intent
 export const createPaymentIntent = (orderId) => async (dispatch) => {
   dispatch(setLoading(true));
   const data = await createPaymentIntentApi(orderId);
@@ -50,7 +48,7 @@ export const createPaymentIntent = (orderId) => async (dispatch) => {
       setPaymentIntent({
         clientSecret: data.data.clientSecret,
         paymentIntentId: data.data.paymentIntent,
-      })
+      }),
     );
     return data;
   }

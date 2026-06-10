@@ -67,7 +67,10 @@ export const createOrder = async (req, res) => {
         message: "Shipping address is required",
       });
     }
-    const address = await Address.findOne({ _id: shippingAddressId, user: userId });
+    const address = await Address.findOne({
+      _id: shippingAddressId,
+      user: userId,
+    });
     if (!address) {
       return res.status(404).send({
         status: "error",
@@ -94,6 +97,8 @@ export const createOrder = async (req, res) => {
       items: cart.items.map((item) => ({
         product: item.product._id,
         name: item.name,
+        image:
+          item.image || (item.product.images && item.product.images[0]) || "",
         quantity: item.quantity,
         color: item.color,
         price: item.price,
@@ -156,7 +161,12 @@ export const cancelOrder = async (req, res) => {
       });
     }
 
-    const nonCancellableStatuses = ["shipped", "delivered", "returned"];
+    const nonCancellableStatuses = [
+      "shipped",
+      "confirmed",
+      "delivered",
+      "returned",
+    ];
     if (nonCancellableStatuses.includes(order.orderStatus)) {
       return res.status(400).send({
         status: "error",

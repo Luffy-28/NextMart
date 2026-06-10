@@ -8,19 +8,25 @@ const orderSlice = createSlice({
     placedOrder: null,
     paymentStatus: null,
     orderStatus: null,
-     error: null,
+    loading: false,
+    error: null,
   },
   reducers: {
     setOrders: (state, action) => {
-      state.orders = action.payload;
+      // Normalize: payload may be an array (getOrders) or a single object (createOrder/cancelOrder)
+      state.orders = Array.isArray(action.payload)
+        ? action.payload
+        : state.orders;
     },
     setPendingOrderId: (state, action) => {
       state.pendingOrderId = action.payload;
     },
-        clearPendingOrder: (state) => {
+    clearPendingOrder: (state) => {
       state.pendingOrderId = null;
     },
-
+    setloading: (state, action) => {
+      state.loading = action.payload;
+    },
     setPlacedOrder: (state, action) => {
       state.placedOrder = action.payload;
     },
@@ -30,11 +36,20 @@ const orderSlice = createSlice({
     setOrderStatus: (state, action) => {
       state.orderStatus = action.payload;
     },
-    setError: (state,action) =>{
+    setError: (state, action) => {
       state.error = action.payload;
-    }
+    },
   },
 });
 
-export const { setOrders,setError, setPendingOrderId,setPlacedOrder, setPaymentStatus, setOrderStatus,clearPendingOrder } = orderSlice.actions;
+export const {
+  setOrders,
+  setError,
+  setPendingOrderId,
+  setPlacedOrder,
+  setPaymentStatus,
+  setOrderStatus,
+  clearPendingOrder,
+  setloading,
+} = orderSlice.actions;
 export default orderSlice.reducer;
