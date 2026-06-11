@@ -28,11 +28,11 @@ export const createOrder = (payload) => async (dispatch) => {
   const data = await createOrderApi(payload);
   dispatch(setloading(false));
   if (data.status === "success") {
-    dispatch(setOrders(data.data));
     dispatch(setOrderStatus(data.orderStatus));
     dispatch(setPaymentStatus(data.paymentStatus));
     dispatch(setPendingOrderId(data.data._id));
     dispatch(setPlacedOrder(data.data));
+    dispatch(getOrder());
     return data;
   }
   dispatch(setError(data.message || "Failed to create order"));
@@ -50,7 +50,6 @@ export const getOrderById = (id) => async (dispatch) => {
 export const cancelOrder = (id) => async (dispatch) => {
   const data = await cancelOrderApi(id);
   if (data.status === "success") {
-    dispatch(setOrders(data.data));
     dispatch(getOrder());
     return data;
   }

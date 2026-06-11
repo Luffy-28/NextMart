@@ -13,10 +13,7 @@ const orderSlice = createSlice({
   },
   reducers: {
     setOrders: (state, action) => {
-      // Normalize: payload may be an array (getOrders) or a single object (createOrder/cancelOrder)
-      state.orders = Array.isArray(action.payload)
-        ? action.payload
-        : state.orders;
+      state.orders = action.payload;
     },
     setPendingOrderId: (state, action) => {
       state.pendingOrderId = action.payload;
