@@ -15,10 +15,17 @@ import {
 } from "./orderSlice";
 
 export const getOrder = () => async (dispatch) => {
-  const data = await getOrdersApi();
-  if (data.status === "success") {
-    dispatch(setOrders(data.data));
-    return data;
+  try {
+    dispatch(setloading(true));
+    const data = await getOrdersApi();
+    if (data.status === "success") {
+      dispatch(setOrders(data.data));
+      return data;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    dispatch(setloading(false));
   }
 };
 
@@ -40,17 +47,31 @@ export const createOrder = (payload) => async (dispatch) => {
 };
 
 export const getOrderById = (id) => async (dispatch) => {
-  const data = await getOrderByIdApi(id);
-  if (data.status === "success") {
-    dispatch(setOrders(data.data));
-    return data;
+  try {
+    dispatch(setloading(true));
+    const data = await getOrderByIdApi(id);
+    if (data.status === "success") {
+      dispatch(setOrders(data.data));
+      return data;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    dispatch(setloading(false));
   }
 };
 
 export const cancelOrder = (id) => async (dispatch) => {
-  const data = await cancelOrderApi(id);
-  if (data.status === "success") {
-    dispatch(getOrder());
-    return data;
+  try {
+    dispatch(setloading(true));
+    const data = await cancelOrderApi(id);
+    if (data.status === "success") {
+      dispatch(getOrder());
+      return data;
+    }
+  } catch (error) {
+    console.error(error);
+  } finally {
+    dispatch(setloading(false));
   }
 };

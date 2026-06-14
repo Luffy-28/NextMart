@@ -47,3 +47,20 @@ export const googleLoginApi = async(googleData) =>{
     data:googleData
   })
 }
+
+export const updateProfileApi = async(profileData) =>{
+  return apiProcessor({
+    url:import.meta.env.VITE_ROOT_URL + "/api/v1/users/me",
+    method:"PATCH",
+    data:profileData,
+    isPrivate:true,
+  })
+}
+export const changePasswordApi = async(pData) =>{
+  return apiProcessor({
+    url:import.meta.env.VITE_ROOT_URL + "/api/v1/users/changePassword",
+    method:"PATCH",
+    data:pData,
+    isPrivate:true,
+  })
+}

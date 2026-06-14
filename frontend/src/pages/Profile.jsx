@@ -9,6 +9,9 @@ import {
   deleteAddress,
 } from "../features/address/addressAction.js";
 import ConfirmDialog from "../components/ui/ConfirmDialog.jsx";
+import { changePassword, updateProfile } from "../features/user/userAction.js";
+import { useForm } from "../hooks/useForm.js";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const TABS = [
   { key: "personal", label: "Personal Info", icon: "bi-person-fill" },
@@ -18,8 +21,8 @@ const TABS = [
 
 const Profile = () => {
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.userStore);
-  const { addresses = [] } = useSelector((state) => state.addressStore);
+  const { user, loading: userLoading } = useSelector((state) => state.userStore);
+  const { addresses = [], loading: addressLoading } = useSelector((state) => state.addressStore);
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("personal");
   const [saved, setSaved] = useState(false);
@@ -36,11 +39,26 @@ const Profile = () => {
     country: "Australia",
     isDefault: false,
   });
+  const prodileInitialState ={
+    name: "",
+    email: "",
+    phoneNumber: "",
+    dob: "",
+    gender: "prefer not to say",
+    country: "",
+  };
+  const passwordInitialState ={
+    currentPassword:"",
+    newPassword:"",
+    confirmPassword:"",
+  }
   const [formErrors, setFormErrors] = useState({});
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [addressToDelete, setAddressToDelete] = useState(null);
   const [actionLoading, setActionLoading] = useState(false);
-
+  const { formData, setFormData, handleChange } = useForm(prodileInitialState);
+  const { formData: passwordFormData, setFormData: setPasswordFormData, handleChange: passwordhandleChange } = useForm(passwordInitialState);
+ 
   const handleOpenAddModal = () => {
     setEditingAddress(null);
     setAddressForm({
@@ -79,6 +97,36 @@ const Profile = () => {
     if (!addressForm.postcode.trim()) errors.postcode = "Postcode is required";
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
+  };
+
+  const updateFormSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await dispatch(updateProfile(formData));
+      if (response && response.status === "success") {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+      } else {
+        alert(response?.message || "Failed to update profile");
+      }
+    } catch (error) {
+      console.log("failed to updateUserdetials", error);
+    }
+  };
+  const handlePasswordUpdateSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await dispatch(changePassword(passwordFormData));
+      if (response && response.status === "success") {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 2000);
+        setPasswordFormData(passwordInitialState);
+      } else {
+        alert(response?.message || "failed to update password");
+      }
+    } catch (err) {
+      console.log("failed to update password", err);
+    }
   };
 
   const handleAddressSubmit = async (e) => {
@@ -122,6 +170,29 @@ const Profile = () => {
     if (!user || !user.email) navigate("/login");
   }, [user, navigate]);
 
+  useEffect(() => {
+    if (user) {
+      const defaultAddress = addresses.find((addr) => addr.isDefault) || addresses[0];
+      const userCountry = defaultAddress ? defaultAddress.country : "";
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phoneNumber: user.phoneNumber || "",
+        dob: user.dob ? user.dob.split("T")[0] : "",
+        gender: user.gender || "prefer not to say",
+        country: userCountry,
+      });
+    }
+  }, [user, addresses, setFormData]);
+
+  useEffect(() => {
+    dispatch(getAddress());
+  }, [dispatch]);
+
+  if (userLoading && !user) {
+    return <LoadingSpinner fullPage={true} />;
+  }
+
   if (!user || !user.email) return null;
 
   const initials = user.name
@@ -132,9 +203,6 @@ const Profile = () => {
         .toUpperCase()
         .slice(0, 2)
     : "U";
-  useEffect(() => {
-    dispatch(getAddress());
-  }, [dispatch]);
   const handleSave = (e) => {
     e.preventDefault();
     setSaved(true);
@@ -143,6 +211,7 @@ const Profile = () => {
 
   return (
     <div style={{ background: "var(--nex-bg)", minHeight: "100vh" }}>
+      {userLoading && <LoadingSpinner fullPage={true} />}
       {/* Page hero */}
       <div className="nex-page-hero">
         <div
@@ -187,7 +256,20 @@ const Profile = () => {
                   color: "white",
                 }}
               >
-                {initials}
+                {user.image ? (
+                  <img
+                    src={user.image}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) : (
+                  initials
+                )}
               </div>
               <h4
                 className="nex-text-light fw-bold mb-1"
@@ -313,13 +395,15 @@ const Profile = () => {
                 >
                   Personal Information
                 </h5>
-                <form onSubmit={handleSave}>
+                <form onSubmit={updateFormSubmit} encType="multipart/form-data">
                   <div className="row g-4">
                     <div className="col-md-6">
                       <label className="nex-form-label">Full Name</label>
                       <input
                         type="text"
-                        defaultValue={user.name}
+                        name="name"
+                        value = {formData.name}
+                        onChange={(e)=>handleChange(e)}
                         className="nex-input"
                       />
                     </div>
@@ -327,8 +411,9 @@ const Profile = () => {
                       <label className="nex-form-label">Email Address</label>
                       <input
                         type="email"
-                        defaultValue={user.email}
-                        disabled
+                        name="email"
+                        value={formData.email}
+                        onChange={(e) => handleChange(e)}
                         className="nex-input"
                       />
                     </div>
@@ -336,32 +421,47 @@ const Profile = () => {
                       <label className="nex-form-label">Phone Number</label>
                       <input
                         type="tel"
-                        placeholder="+1 (555) 000-0000"
+                        name="phoneNumber"
+                        value={formData.phoneNumber}
+                        onChange={(e) => handleChange(e)}
                         className="nex-input"
                       />
                     </div>
                     <div className="col-md-6">
                       <label className="nex-form-label">Date of Birth</label>
-                      <input type="date" className="nex-input" />
+                      <input
+                        type="date"
+                        name="dob"
+                        value={formData.dob}
+                        onChange={(e) => handleChange(e)}
+                        className="nex-input"
+                      />
                     </div>
                     <div className="col-md-6">
                       <label className="nex-form-label">Gender</label>
                       <select
                         className="nex-input"
                         style={{ cursor: "pointer" }}
+                        value={formData.gender}
+                        onChange={(e)=>handleChange(e)}
+                        name="gender"
                       >
-                        <option value="">Prefer not to say</option>
-                        <option>Male</option>
-                        <option>Female</option>
-                        <option>Other</option>
+                        <option value="prefer not to say">Prefer not to say</option>
+                        <option value="male">Male</option>
+                        <option value="female">Female</option>
+                        <option value="other">Other</option>
                       </select>
                     </div>
                     <div className="col-md-6">
-                      <label className="nex-form-label">Country</label>
+                      <label className="nex-form-label">Country (from default address)</label>
                       <input
                         type="text"
-                        placeholder="Australia"
+                        name="country"
+                        value={formData.country}
+                        onChange={(e) => handleChange(e)}
                         className="nex-input"
+                        disabled
+                        style={{ cursor: "not-allowed", opacity: 0.7 }}
                       />
                     </div>
                     <div className="col-12">
@@ -404,7 +504,7 @@ const Profile = () => {
                 </h5>
                 <div className="d-flex flex-column gap-4">
                   {/* Change password */}
-                  <div
+                  <form onSubmit={handlePasswordUpdateSubmit}
                     className="p-4 rounded"
                     style={{
                       background: "rgba(255,255,255,0.02)",
@@ -431,7 +531,10 @@ const Profile = () => {
                           Current Password
                         </label>
                         <input
-                          type="password"
+                          type="text"
+                          name="currentPassword"
+                          value={passwordFormData.currentPassword}
+                          onChange={(e) => passwordhandleChange(e)}
                           placeholder="••••••••••••"
                           className="nex-input"
                         />
@@ -439,7 +542,10 @@ const Profile = () => {
                       <div>
                         <label className="nex-form-label">New Password</label>
                         <input
-                          type="password"
+                          type="text"
+                          name="newPassword"
+                          value={passwordFormData.newPassword}
+                          onChange={(e) => passwordhandleChange(e)}
                           placeholder="Min 8 characters"
                           className="nex-input"
                         />
@@ -449,12 +555,16 @@ const Profile = () => {
                           Confirm New Password
                         </label>
                         <input
-                          type="password"
+                          type="text"
+                          name="confirmPassword"
+                          value={passwordFormData.confirmPassword}
+                          onChange={(e) => passwordhandleChange(e)}
                           placeholder="••••••••••••"
                           className="nex-input"
                         />
                       </div>
                       <button
+                        type="submit"
                         className="nex-btn-primary"
                         style={{
                           padding: "11px 28px",
@@ -464,7 +574,7 @@ const Profile = () => {
                         Update Password
                       </button>
                     </div>
-                  </div>
+                  </form>
 
                   {/* 2FA */}
                   <div
@@ -519,7 +629,12 @@ const Profile = () => {
                     Add Address
                   </button>
                 </div>
-                <div className="d-flex flex-column gap-3">
+                <div className="d-flex flex-column gap-3" style={{ position: "relative", minHeight: "200px" }}>
+                  {addressLoading && (
+                    <div className="position-absolute d-flex align-items-center justify-content-center" style={{ top: 0, left: 0, right: 0, bottom: 0, background: "rgba(7,7,15,0.6)", zIndex: 10, borderRadius: 12, backdropFilter: "blur(4px)" }}>
+                      <LoadingSpinner />
+                    </div>
+                  )}
                   {addresses.length === 0 ? (
                     <div
                       className="text-center p-5 rounded"

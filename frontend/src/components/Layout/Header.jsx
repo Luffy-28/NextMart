@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Navbar, Container, Nav, Dropdown } from "react-bootstrap";
 import { useSelector, useDispatch } from "react-redux";
@@ -15,6 +15,7 @@ import {
 import { setUser } from "../../features/user/userSlice";
 import { toggleTheme } from "../../features/theme/themeSlice";
 import { getCart } from "../../features/cart/cartAction";
+import { setSearch } from "../../features/product/productSlice";
 
 const Header = () => {
   const dispatch = useDispatch();
@@ -25,6 +26,9 @@ const Header = () => {
 
   const { user } = useSelector((state) => state.userStore);
   const { isDark } = useSelector((state) => state.themeStore);
+
+  const [query, setQuery] = useState("");
+  const debounceTimer = useRef(null);
 
   const isAuthPage =
     location.pathname === "/login" ||
@@ -41,6 +45,53 @@ const Header = () => {
   useEffect(() =>{
     dispatch(getCart())
   },[dispatch])
+
+
+  const handleonChange = (value) => {
+    setQuery(value);
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    if (!value.trim()) {
+      dispatch(setSearch(''));
+      return;
+    }
+    debounceTimer.current = setTimeout(() => {
+      dispatch(setSearch(value.trim()));
+      if (location.pathname !== '/products') {
+        navigate('/products');
+      }
+    }, 500);
+  };
+
+  // cleanup timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer.current) {
+        clearTimeout(debounceTimer.current);
+      }
+    };
+  }, []);
+
+  // handle search on button click or Enter
+  const handleSearch = () => {
+    if (debounceTimer.current) {
+      clearTimeout(debounceTimer.current);
+    }
+    if (query.trim()) {
+      dispatch(setSearch(query.trim()));
+      if (location.pathname !== '/products') {
+        navigate('/products');
+      }
+    }
+  };
+
+  const handleKeyEnter = (e) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  };
+
 
   const navLinks = [
     { to: "/", label: "Home" },
@@ -113,7 +164,18 @@ const Header = () => {
             <Dropdown align="end">
               <Dropdown.Toggle as="div" className="nex-avatar-toggle">
                 <div className="nex-avatar-circle">
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  {user.image ? (
+                  <img
+                    src={user.image}
+                    alt=""
+                    style={{
+                      width: "100%",
+                      height: "100%",
+                      borderRadius: "50%",
+                      objectFit: "cover",
+                    }}
+                  />
+                ) :  user.name.charAt(0).toUpperCase() || "U"}
                 </div>
 
                 <span className="d-none d-sm-block small fw-medium nex-text-light">
@@ -216,12 +278,16 @@ const Header = () => {
               </Nav>
 
               <div className="nex-search-wrap mx-lg-3 mt-4 mt-lg-0 mb-2 mb-lg-0">
-                <FiSearch size={17} className="nex-search-icon" />
-
+                <button className="border-0 bg-transparent" onClick={handleSearch} type="button">
+                  <FiSearch style={{cursor:'pointer'}} size={17} className="nex-search-icon" />
+                </button>
                 <input
                   type="text"
                   placeholder="Search products..."
                   className="nex-search-field"
+                  value={query}
+                  onChange={(e)=>handleonChange(e.target.value)}
+                  onKeyDown={handleKeyEnter}
                 />
               </div>
             </Navbar.Collapse>

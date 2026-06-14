@@ -5,9 +5,13 @@ const cartSlice = createSlice({
   initialState: {
     items: [],
     totalAmount: 0,
-    totalItems: 0
+    totalItems: 0,
+    loading: false,
   },
   reducers: {
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
     // Syncs full cart from backend response (items + totalAmount)
     setCart: (state, action) => {
       const items = action.payload?.items || [];
@@ -24,5 +28,5 @@ const cartSlice = createSlice({
   },
 });
 
-export const { setCart, clearItem } = cartSlice.actions;
+export const { setCart, clearItem, setLoading } = cartSlice.actions;
 export default cartSlice.reducer;

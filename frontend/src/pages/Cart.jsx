@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
 import { getCart, removeFromCart, updateCartQuantity } from '../features/cart/cartAction.js';
 import ConfirmDialog from '../components/ui/ConfirmDialog.jsx';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const INITIAL_ITEMS = [
 //   { id: 1, name: 'Wireless Noise-Cancelling Headphones', price: 349, quantity: 1, image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=500&q=80' },
@@ -18,7 +19,7 @@ const Cart = () => {
   const [couponError, setCouponError] = useState('');
 
   // redux store
-  const { items: cartItems, totalAmount } = useSelector((state) => state.cartStore);
+  const { items: cartItems, totalAmount, loading } = useSelector((state) => state.cartStore);
 
   // tracks which productId is waiting for remove confirmation (null = dialog closed)
   const [pendingRemoveId, setPendingRemoveId] = useState(null);
@@ -78,6 +79,14 @@ const Cart = () => {
     }
   };
 
+  if (loading && cartItems.length === 0) {
+    return (
+      <div style={{ background: 'var(--nex-bg)', minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   if (cartItems.length === 0) {
     return (
       <div style={{ background: 'var(--nex-bg)', minHeight: '80vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '60px 20px' }}>
@@ -108,7 +117,12 @@ const Cart = () => {
         <div className="row g-5">
           {/* Cart items */}
           <div className="col-lg-8">
-            <div className="nex-glass-card p-4 p-md-5 mb-4">
+            <div className="nex-glass-card p-4 p-md-5 mb-4" style={{ position: 'relative' }}>
+              {loading && (
+                <div className="position-absolute d-flex align-items-center justify-content-center" style={{ top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(7,7,15,0.6)', zIndex: 10, borderRadius: 16, backdropFilter: 'blur(4px)' }}>
+                  <LoadingSpinner />
+                </div>
+              )}
               <div className="d-flex align-items-center justify-content-between mb-4 pb-3" style={{ borderBottom: '1px solid var(--nex-border)' }}>
                 <h5 className="nex-text-light fw-bold mb-0">Cart Items ({cartItems.length})</h5>
                 <Link to="/products" className="nex-gradient-text text-decoration-none fw-semibold" style={{ fontSize: '0.88rem' }}>← Continue Shopping</Link>

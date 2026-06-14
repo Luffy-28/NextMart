@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useForm } from '../hooks/useForm';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { registerUser } from '../features/user/userAction';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const initialState = { name: '', email: '', password: '', confirmPassword: '' };
 
@@ -13,6 +14,7 @@ const Signup = () => {
   const [passwordStrength, setPasswordStrength] = useState({ score: 0, label: 'Weak', color: '#EF4444' });
   const [showPw, setShowPw] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const { loading, error } = useSelector((state) => state.userStore);
 
   const calculatePasswordStrength = (password) => {
     let score = 0;
@@ -66,6 +68,7 @@ const Signup = () => {
 
   return (
     <div className="nex-auth-wrap">
+      {loading && <LoadingSpinner fullPage={true} />}
       {/* Left panel */}
       <div className="nex-auth-left">
         <div className="nex-orb" style={{ width: '280px', height: '280px', background: '#06B6D4', top: '-8%', left: '-12%', opacity: 0.15 }} />
@@ -105,6 +108,20 @@ const Signup = () => {
             Already have an account?{' '}
             <Link to="/login" className="nex-gradient-text fw-semibold text-decoration-none">Sign in →</Link>
           </p>
+
+          {error && (
+            <div className="d-flex align-items-center gap-2 p-3 mb-4 rounded animate__animated animate__fadeIn"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#f87171',
+                fontSize: '0.88rem',
+                borderRadius: 12
+              }}>
+              <i className="bi bi-exclamation-circle-fill flex-shrink-0" style={{ fontSize: '1.1rem' }} />
+              <span>{error}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="d-flex flex-column gap-4">
             <div>

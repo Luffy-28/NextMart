@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Link, useParams } from 'react-router-dom';
 import { getProductById } from '../features/product/productAction.js';
 import { addToCart } from '../features/cart/cartAction.js';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const RELATED = [
   { id: 2, name: 'Running Shoes Pro X', basePrice: 129, rating: 4, image: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&q=80' },
@@ -47,7 +48,7 @@ const ProductDetails = () => {
   const [wishlist, setWishlist] = useState(false);
 
   //redux store
-   const { product } = useSelector((state) => state.productStore);
+   const { product, loading } = useSelector((state) => state.productStore);
    const {items: cartItems} = useSelector((state) => state.cartStore);
 
   // const handleAddToCart = () => {
@@ -72,6 +73,10 @@ const ProductDetails = () => {
   useEffect(()=>{
     dispatch(getProductById(id))
   },[dispatch, id])
+
+  if (loading || !product) {
+    return <LoadingSpinner fullPage={true} />;
+  }
 
   const productImages = product?.images?.length ? product.images : [FALLBACK_IMAGE];
   const imageUrl = (image) => typeof image === 'string' ? image : image?.url || FALLBACK_IMAGE;

@@ -17,25 +17,40 @@ import {
 
 // ── Fetch all saved addresses
 export const fetchAddresses = () => async (dispatch) => {
-  const data = await getAddressesApi();
-  if (data.status === "success") {
-    dispatch(setAddresses(data.data));
-    // Auto-select default address, or the first one
-    const def = data.data.find((a) => a.isDefault) || data.data[0];
-    if (def) dispatch(setSelectedAddressId(def._id));
-    return data;
+  try {
+    dispatch(setLoading(true));
+    const data = await getAddressesApi();
+    if (data.status === "success") {
+      dispatch(setAddresses(data.data));
+      // Auto-select default address, or the first one
+      const def = data.data.find((a) => a.isDefault) || data.data[0];
+      if (def) dispatch(setSelectedAddressId(def._id));
+      return data;
+    }
+  } catch (error) {
+    dispatch(setError(error.message || "Failed to fetch addresses"));
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 
 // ── Save a new address
 export const saveAddress = (address) => async (dispatch) => {
-  const data = await addAddressApi(address);
-  if (data.status === "success") {
-    dispatch(addAddress(data.data));
-    dispatch(setSelectedAddressId(data.data._id));
-    return data;
+  try {
+    dispatch(setLoading(true));
+    const data = await addAddressApi(address);
+    if (data.status === "success") {
+      dispatch(addAddress(data.data));
+      dispatch(setSelectedAddressId(data.data._id));
+      return data;
+    }
+    return data; // caller handles error toast
+  } catch (error) {
+    dispatch(setError(error.message || "Failed to save address"));
+    return { status: "error", message: error.message };
+  } finally {
+    dispatch(setLoading(false));
   }
-  return data; // caller handles error toast
 };
 
 // ── Create payment intent

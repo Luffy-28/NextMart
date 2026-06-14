@@ -13,7 +13,7 @@ const userSchema = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: false,
+      required: true,
     },
     googleId: { type: String, unique: true, sparse: true },
     role: {
@@ -28,6 +28,20 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    phoneNumber: {
+      type: String,
+      required: false,
+      unique: true,
+      sparse: true,
+    },
+    dob:{
+      type:Date,
+    },
+    gender:{
+      type:String,
+      enum:["male","female","other", "prefer not to say"],
+      default:"prefer not to say"
+    }
   },
   {
     timestamps: true,

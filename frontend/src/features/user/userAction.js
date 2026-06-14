@@ -4,6 +4,8 @@ import {
   verifyOtpApi,
   resendOtpAPI,
   registerUserApi,
+  updateProfileApi,
+  changePasswordApi,
 } from "./userApis.js";
 import { setUser, setLoading, setError } from "./userSlice.js";
 
@@ -17,7 +19,6 @@ export const loginUser = (formData) => async (dispatch) => {
         localStorage.setItem("refreshToken", data.refreshToken);
       } else {
         alert("no access token found");
-        dispatch(setLoading(false));
         return false;
       }
       const userResponse = await userDetailsApi();
@@ -37,6 +38,8 @@ export const loginUser = (formData) => async (dispatch) => {
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
     return false;
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 
@@ -53,6 +56,8 @@ export const registerUser = (formData) => async (dispatch) => {
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
     return { status: "error", message: error.message };
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 
@@ -69,6 +74,8 @@ export const verifyOtp = (otpData) => async (dispatch) => {
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
     return { status: "error", message: error.message };
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 
@@ -78,7 +85,6 @@ export const resendOtp = (email) => async (dispatch) => {
     const data = await resendOtpAPI(email);
     if (data.status === "success") {
       alert("OTP resent successfully");
-      dispatch(setLoading(false));
     } else {
       dispatch(setError(data.message || "Failed to resend OTP"));
     }
@@ -86,6 +92,8 @@ export const resendOtp = (email) => async (dispatch) => {
   } catch (error) {
     dispatch(setError(error.message || "An error occurred"));
     return { status: "error", message: error.message };
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 
@@ -102,11 +110,9 @@ export const autoLogin = () => async (dispatch) => {
           setError(userResponse.message || "Failed to fetch user details"),
         );
       }
-    } else {
-      dispatch(setLoading(false));
     }
-  } catch (error) {
-    console.log(error);
+  } finally {
+    dispatch(setLoading(false));
   }
 };
 
@@ -125,3 +131,35 @@ export const verifyGoogleLoginAction = (googleData) => async (dispatch) => {
     return { status: "error", message: error.message };
   }
 };
+
+export const updateProfile = (profileData) => async(dispatch) =>{
+  try{
+    dispatch(setLoading(true));
+    const response = await updateProfileApi(profileData);
+    if(response.status === "success"){
+      dispatch(setUser(response.data));
+    }else{
+      dispatch(setError(response.message || "Profile update failed"));
+    }
+    return response;
+  }catch(error){
+    dispatch(setError(error.message || "An error occurred"));
+    return { status: "error", message: error.message };
+  }
+}
+export const changePassword = (pData) => async(dispatch) =>{
+   try{
+    dispatch(setLoading(true));
+    const response = await changePasswordApi(pData);
+    if(response.status === "success"){
+      alert("Password changed successfully");
+      dispatch(setLoading(false));
+    }else{
+      dispatch(setError(response.message || "Password change failed"));
+    }
+    return response;
+  }catch(error){
+    dispatch(setError(error.message || "An error occurred"));
+    return { status: "error", message: error.message };
+  }
+}

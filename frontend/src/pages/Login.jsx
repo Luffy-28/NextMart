@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { useForm } from '../hooks/useForm';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { loginUser, autoLogin } from '../features/user/userAction';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 
 const initialState = { email: '', password: '' };
 
@@ -13,6 +14,7 @@ const Login = () => {
   const [searchParams] = useSearchParams();
   const { formData, setFormData, handleChange } = useForm(initialState);
   const [showPw, setShowPw] = useState(false);
+  const { loading,error } = useSelector((state) => state.userStore);
 
   useEffect(() => {
     const token = searchParams.get('token');
@@ -43,6 +45,7 @@ const Login = () => {
 
   return (
     <div className="nex-auth-wrap">
+      {loading && <LoadingSpinner fullPage={true} />}
       {/* Left panel */}
       <div className="nex-auth-left">
         <div className="nex-orb" style={{ width: '300px', height: '300px', background: '#8B5CF6', top: '-10%', left: '-10%', opacity: 0.18 }} />
@@ -86,6 +89,20 @@ const Login = () => {
             Don't have an account?{' '}
             <Link to="/signup" className="nex-gradient-text fw-semibold text-decoration-none">Sign up →</Link>
           </p>
+
+          {error && (
+            <div className="d-flex align-items-center gap-2 p-3 mb-4 rounded animate__animated animate__fadeIn"
+              style={{
+                background: 'rgba(239, 68, 68, 0.1)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#f87171',
+                fontSize: '0.88rem',
+                borderRadius: 12
+              }}>
+              <i className="bi bi-exclamation-circle-fill flex-shrink-0" style={{ fontSize: '1.1rem' }} />
+              <span>{error}</span>
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="d-flex flex-column gap-4">
             <div>

@@ -1,4 +1,4 @@
-import { compareData } from "../helpers/encryptHelpers.js";
+import { compareData, hashPassword } from "../helpers/encryptHelpers.js";
 import { Address } from "../models/addressModel.js";
 import { User } from "../models/userModel.js";
 
@@ -57,59 +57,6 @@ export const addAddress = async (req, res) => {
   }
 };
 
-//update pasword
-export const updatePassword = async (req, res) => {
-  try {
-    const userId = req.user._id;
-    const { currentPassword, newPassword } = req.body;
-
-    if (!currentPassword || !newPassword) {
-      return res.status(400).send({
-        status: "error",
-        message: "current password and new password are required",
-      });
-    }
-    if (newPassword.length < 8) {
-      return res.status(400).send({
-        status: "error",
-        message: "New password must be at least 8 characters",
-      });
-    }
-
-    if (currentPassword === newPassword) {
-      return res.status(400).send({
-        status: "error",
-        message: "New password must be different from current password",
-      });
-    }
-    const user = await User.findById(userId).select("+password");
-    if (!user) {
-      return res.status(404).send({
-        status: "error",
-        message: "user not found",
-      });
-    }
-    const isMatch = await compareData(currentPassword, user.password);
-    if (!isMatch) {
-      return res.status(400).send({
-        status: "error",
-        message: "current password is incorrect",
-      });
-    }
-    user.password = newPassword;
-    await User.save();
-    return res.status(200).send({
-      status: "success",
-      message: "password updated successfully",
-    });
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({
-      status: "error",
-      message: "error updating password",
-    });
-  }
-};
 
 // Get User Address
 
@@ -238,3 +185,58 @@ export const deleteAddress = async (req, res) => {
     });
   }
 };
+
+
+//change password
+export const changePassword = async(req,res) =>{
+  try {
+    const userId = req.user._id;
+    const {currentPassword, newPassword, confirmPassword} = req.body;
+    
+    //check if the password enetr and password in the datbase are matched
+    const user = await User.findById(userId);
+    if(!user){
+      return res.status(404).send({
+        status:"error",
+        message:"user not found",
+      })
+    }
+    const matchpassword = compareData(currentPassword, user.password);
+    if(!matchpassword){
+      return res.status(400).send({
+        status:"error",
+        message:"Invalid current password",
+      })
+    } 
+    // check if the new password is same as the old password
+    if(currentPassword === newPassword){
+      return res.status(400).send({
+        status:"error",
+        message:"New password is same as the current password",
+      })
+    }
+
+    //check if the new paswword and confirmPassword are same 
+    if(newPassword !== confirmPassword){
+      return res.status(400).send({
+        status:"error",
+        message:"New password and confirm password do not match.",
+      })
+    }
+    //hash the new password and save the user
+    const newhashpassword = hashPassword(newPassword);
+    user.password = newhashpassword;
+    await user.save();
+    return res.status(200).send({
+      status:"success",
+      message:"password changed successfully",
+    });
+
+  } catch (error) {
+    console.log(error);
+    return res.status(500).send({
+      status:"error",
+      message:"error changing password",
+    })
+  }
+}

@@ -5,22 +5,25 @@ import CategoryCard from "../components/category/CategoryCard";
 import ProductCard from "../components/product/ProductCard";
 import Rating from "../components/ui/Rating";
 import ThreeHero from "../components/ui/ThreeHero";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchAllActiveCategory } from "../features/category/categoryAction.js";
 import {
+  fetchAllProducts,
   getFeatuedProducts,
   getProductsByTags,
 } from "../features/product/productAction.js";
 
 const Home = () => {
   const dispatch = useDispatch();
-  const { products, trendingProducts, featuredProducts } = useSelector(
+  const { products, pagination, trendingProducts, featuredProducts, loading: productsLoading } = useSelector(
     (state) => state.productStore,
   );
-  const { categories } = useSelector((state) => state.categoryStore);
+  const { categories, loading: categoriesLoading } = useSelector((state) => state.categoryStore);
 
   useEffect(() => {
     dispatch(fetchAllActiveCategory());
+    dispatch(fetchAllProducts(1, 12));
     dispatch(getFeatuedProducts(1, 10));
     dispatch(getProductsByTags("trending", 1, 10));
   }, [dispatch]);
@@ -138,7 +141,7 @@ const Home = () => {
                       label: "Happy customers",
                       icon: "bi-people",
                     },
-                    { value: "10K+", label: "Products", icon: "bi-box-seam" },
+                    { value: `${pagination.totalItems || '0'}`, label: "Products", icon: "bi-box-seam" },
                     {
                       value: "4.9★",
                       label: "Avg. rating",
@@ -325,13 +328,17 @@ const Home = () => {
             </div>
           </Reveal>
           <div className="row g-3 g-md-4">
-            {categories?.slice(0, 8).map((c, i) => (
-              <div className="col-6 col-md-4 col-lg-3" key={c.id}>
-                <Reveal delay={i * 80}>
-                  <CategoryCard category={c} />
-                </Reveal>
-              </div>
-            ))}
+            {categoriesLoading ? (
+              <div className="col-12"><LoadingSpinner /></div>
+            ) : (
+              categories?.slice(0, 8).map((c, i) => (
+                <div className="col-6 col-md-4 col-lg-3" key={c.id}>
+                  <Reveal delay={i * 80}>
+                    <CategoryCard category={c} />
+                  </Reveal>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -415,13 +422,17 @@ const Home = () => {
             </Reveal>
           </div>
           <div className="row g-3 g-md-4">
-            {trendingProducts?.slice(0, 8).map((p, i) => (
-              <div className="col-6 col-md-4 col-lg-3" key={p.id}>
-                <Reveal delay={i * 50}>
-                  <ProductCard product={p} />
-                </Reveal>
-              </div>
-            ))}
+            {productsLoading ? (
+              <div className="col-12"><LoadingSpinner /></div>
+            ) : (
+              trendingProducts?.slice(0, 8).map((p, i) => (
+                <div className="col-6 col-md-4 col-lg-3" key={p.id}>
+                  <Reveal delay={i * 50}>
+                    <ProductCard product={p} />
+                  </Reveal>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>
@@ -440,13 +451,17 @@ const Home = () => {
             </div>
           </Reveal>
           <div className="row g-3 g-md-4">
-            {featuredProducts?.slice(0, 8).map((p, i) => (
-              <div className="col-6 col-md-3" key={p.id}>
-                <Reveal delay={i * 150} duration={0.8}>
-                  <ProductCard product={p} />
-                </Reveal>
-              </div>
-            ))}
+            {productsLoading ? (
+              <div className="col-12"><LoadingSpinner /></div>
+            ) : (
+              featuredProducts?.slice(0, 8).map((p, i) => (
+                <div className="col-6 col-md-3" key={p.id}>
+                  <Reveal delay={i * 150} duration={0.8}>
+                    <ProductCard product={p} />
+                  </Reveal>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </section>

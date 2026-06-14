@@ -3,7 +3,9 @@ import { Link, useSearchParams } from 'react-router-dom';
 import { Collapse } from 'react-bootstrap';
 import { useDispatch, useSelector } from 'react-redux';
 import { toast } from 'react-toastify';
+import LoadingSpinner from '../components/ui/LoadingSpinner';
 import { fetchAllProducts } from '../features/product/productAction.js';
+import { setSearch } from '../features/product/productSlice.js';
 import { fetchAllActiveCategory } from '../features/category/categoryAction.js';
 import { fetchAllActiveSubCategory } from '../features/subCategory/subCategoryAction.js';
 import { addToCart } from '../features/cart/cartAction.js';
@@ -160,7 +162,7 @@ const FilterPanel = ({
 
     <div style={{ height: 1, background: 'var(--nex-border)', margin: '20px 0' }} />
     <p className="nex-filter-heading">Max Price</p>
-    <input type="range" min={0} max={1000} step={10} value={priceRange[1]}
+    <input type="range" min={0} max={10000} step={10} value={priceRange[1]}
       onChange={e => setPriceRange([0, +e.target.value])}
       style={{ width: '100%', accentColor: 'var(--nex-purple)' }} />
     <div className="d-flex justify-content-between mt-1">
@@ -198,7 +200,7 @@ const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState(initCategory);
   const [selectedSubcategory, setSelectedSubcategory] = useState(initSubcategory);
   const [openCategories, setOpenCategories] = useState({ All: true, [initCategory]: true });
-  const [priceRange, setPriceRange] = useState([0, 1000]);
+  const [priceRange, setPriceRange] = useState([0, 10000]);
   const [sortBy, setSortBy] = useState('featured');
   const [viewMode, setViewMode] = useState('grid');
   const [minRating, setMinRating] = useState(0);
@@ -207,7 +209,7 @@ const Products = () => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Redux Selectors
-  const { products, pagination } = useSelector((state) => state.productStore);
+  const { products, pagination, search, loading } = useSelector((state) => state.productStore);
   const { categories } = useSelector((state) => state.categoryStore);
   const { subCategories } = useSelector((state) => state.subCategoryStore);
   const { items: cartItems } = useSelector((state) => state.cartStore);
@@ -251,6 +253,11 @@ const Products = () => {
     }
   }, [activeCategoryDoc, dispatch]);
 
+  // Reset to page 1 when search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search]);
+
   // Main Products fetch reactive to filters
   useEffect(() => {
     const categoryId = activeCategoryDoc?._id || '';
@@ -269,7 +276,7 @@ const Products = () => {
         priceRange[0],
         priceRange[1],
         minRating,
-        '' // search
+        search || '' // search
       )
     );
   }, [
@@ -281,6 +288,7 @@ const Products = () => {
     minRating,
     activeCategoryDoc,
     subCategories,
+    search,
     dispatch
   ]);
 
@@ -298,23 +306,19 @@ const Products = () => {
     setSelectedSubcategory('All');
   };
 
-  // const handleAddToCart = (id) => {
-  //   setAddedToCart(p => ({ ...p, [id]: true }));
-  //   setTimeout(() => setAddedToCart(p => ({ ...p, [id]: false })), 1500);
-  // };
-
   const clearFilters = () => {
     setCurrentPage(1);
     setSelectedCategory('All');
     setSelectedSubcategory('All');
-    setPriceRange([0, 1000]);
+    setPriceRange([0, 10000]);
     setMinRating(0);
+    dispatch(setSearch(''));
   };
 
   const activeFilterCount = [
     selectedCategory !== 'All',
     selectedSubcategory !== 'All',
-    priceRange[1] !== 1000,
+    priceRange[1] !== 10000,
     minRating > 0,
   ].filter(Boolean).length;
 
@@ -358,9 +362,12 @@ const Products = () => {
           <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
             <div>
               <p className="nex-label mb-2">NexMart Shop</p>
-              <h1 className="nex-text-light fw-bold mb-2" style={{ fontSize: '2rem' }}>All Products</h1>
+              <h1 className="nex-text-light fw-bold mb-2" style={{ fontSize: '2rem' }}>
+                {search ? `Results for "${search}"` : 'All Products'}
+              </h1>
               <p className="nex-breadcrumb mb-0">
-                <Link to="/">Home</Link><span className="nex-breadcrumb-sep">›</span>Shop
+                <Link to="/">Home</Link><span className="nex-breadcrumb-sep">›</span>
+                {search ? <><Link to="/products" onClick={() => dispatch(setSearch(''))}>Shop</Link><span className="nex-breadcrumb-sep">›</span>Search</> : 'Shop'}
               </p>
             </div>
             <div className="nex-glass-card px-4 py-2">
@@ -425,12 +432,12 @@ const Products = () => {
                       onClick={() => { setSelectedCategory('All'); setSelectedSubcategory('All'); }}>×</span>
                   </span>
                 )}
-                {priceRange[1] < 1000 && (
+                {priceRange[1] < 10000 && (
                   <span className="d-inline-flex align-items-center gap-2 px-3 py-1 rounded-pill"
                     style={{ background: 'rgba(139,92,246,0.12)', color: 'var(--nex-purple)', fontSize: '0.8rem', fontWeight: 600 }}>
                     Max ${priceRange[1]}
                     <span style={{ cursor: 'pointer', fontSize: '1rem', lineHeight: 1 }}
-                      onClick={() => setPriceRange([0, 1000])}>×</span>
+                      onClick={() => setPriceRange([0, 10000])}>×</span>
                   </span>
                 )}
                 {minRating > 0 && (
@@ -467,7 +474,9 @@ const Products = () => {
               </div>
             </div>
 
-            {(!products || products.length === 0) ? (
+            {loading ? (
+              <LoadingSpinner />
+            ) : (!products || products.length === 0) ? (
               <div className="nex-glass-card text-center py-5 my-4">
                 <i className="bi bi-search nex-text-muted mb-3 d-block" style={{ fontSize: '3rem' }} />
                 <h4 className="nex-text-light fw-bold mb-2">No products found</h4>

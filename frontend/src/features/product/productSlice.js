@@ -13,6 +13,7 @@ const productSlice = createSlice({
     maxPrice: 0,
     rating: 0,
     search: null,
+    loading: false,
     pagination: {
       currentPage: 1,
       totalPages: 1,
@@ -21,6 +22,9 @@ const productSlice = createSlice({
     },
   },
   reducers: {
+    setLoading: (state, action) => {
+      state.loading = action.payload;
+    },
     setProducts: (state, action) => {
       state.products = action.payload;
     },
@@ -68,6 +72,7 @@ const productSlice = createSlice({
 });
 
 export const {
+  setLoading,
   setProducts,
   setProduct,
   setPagination,

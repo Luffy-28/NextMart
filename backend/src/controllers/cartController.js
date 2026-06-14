@@ -1,5 +1,6 @@
 import Product from "../models/productModel.js";
 import { Cart } from "../models/cartModel.js";
+import { Deal } from "../models/dealsModel.js";
 
 // Fetch User's Cart
 export const getCart = async (req, res) => {
@@ -79,8 +80,27 @@ export const addTocart = async (req, res) => {
       });
     }
 
+    // Check for active deal for this product
+    const currentDate = new Date();
+    const activeDeal = await Deal.findOne({
+      products: productId,
+      isActive: true,
+      startsAt: { $lte: currentDate },
+      endsAt: { $gte: currentDate },
+    });
+
+    let itemPrice = product.discountedPrice || product.basePrice;
+    if (activeDeal) {
+      if (activeDeal.discountType === "percentage") {
+        itemPrice = Math.max(0, +(itemPrice - (itemPrice * activeDeal.discountValue) / 100).toFixed(2));
+      } else if (activeDeal.discountType === "fixed") {
+        itemPrice = Math.max(0, +(itemPrice - activeDeal.discountValue).toFixed(2));
+      }
+    }
+
     if (existingItemIndex > -1) {
       cart.items[existingItemIndex].quantity = newQty;
+      cart.items[existingItemIndex].price = itemPrice;
     } else {
       cart.items.push({
         product: productId,
@@ -88,7 +108,7 @@ export const addTocart = async (req, res) => {
         image: (product.images && product.images[0]) || "",
         color: product.color,
         size: product.size,
-        price: product.discountedPrice || product.basePrice,
+        price: itemPrice,
         quantity: qty,
       });
     }

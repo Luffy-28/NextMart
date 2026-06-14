@@ -20,6 +20,7 @@ import {
   clearPaymentState,
 } from "../features/payment/paymentAction";
 import {  createOrder} from "../features/order/orderAction.js"
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 // ─── Stripe setup ─────────────────────────────────────────────────────────────
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -228,6 +229,7 @@ const CheckoutForm = ({ shippingMethod, setShippingMethod }) => {
         transition: "background 0.3s",
       }}
     >
+      {placing && <LoadingSpinner fullPage={true} />}
       {/* Page hero */}
       <div className="nex-page-hero position-relative overflow-hidden">
         <div
@@ -392,18 +394,7 @@ const CheckoutForm = ({ shippingMethod, setShippingMethod }) => {
 
                 {/* Saved addresses */}
                 {paymentLoading ? (
-                  <div className="text-center py-5">
-                    <span
-                      className="spinner-border spinner-border-sm nex-text-purple"
-                      style={{ width: "2rem", height: "2rem" }}
-                    />
-                    <p
-                      className="nex-text-muted mt-3 mb-0"
-                      style={{ fontSize: "0.9rem" }}
-                    >
-                      Retrieving your address book…
-                    </p>
-                  </div>
+                  <LoadingSpinner />
                 ) : addresses.length > 0 ? (
                   <div className="d-flex flex-column gap-3 mb-4">
                     {addresses.map((addr) => (

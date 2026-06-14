@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import { cancelOrder, getOrder } from "../features/order/orderAction";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const STATUS_CONFIG = {
   delivered: {
@@ -38,7 +39,7 @@ const OrderHistory = () => {
   const [filter, setFilter] = useState("All");
   const [search, setSearch] = useState("");
   const [expanded, setExpanded] = useState(null);
-  const { orders } = useSelector((state) => state.orderStore);
+  const { orders, loading } = useSelector((state) => state.orderStore);
   const statuses = [
     "All",
     "delivered",
@@ -53,6 +54,14 @@ const OrderHistory = () => {
     dispatch(getOrder());
   }, [dispatch]);
 
+  if (loading && orders.length === 0) {
+    return (
+      <div style={{ background: "var(--nex-bg)", minHeight: "80vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <LoadingSpinner />
+      </div>
+    );
+  }
+
   const filtered = orders
     .filter((order) => filter === "All" || order.orderStatus === filter)
     .filter(
@@ -64,6 +73,14 @@ const OrderHistory = () => {
         ),
     );
 
+  const totalAmount = orders
+    .filter((order) => {
+      return order.orderStatus === "confirmed" || order.orderStatus === "delivered";
+    })
+    .reduce((sum, order) => sum + order.totalAmount, 0);
+  
+    const totalSpent = totalAmount.toFixed(2);
+
   const formatDate = (datestr) => {
     const date = new Date(datestr);
     return date.toLocaleDateString();
@@ -74,12 +91,6 @@ const OrderHistory = () => {
     dispatch(cancelOrder(orderId));
   };
 
-  const totalSpent = orders
-    .filter(
-      (order) =>
-        order.orderStatus === "delivered" || order.orderStatus === "shipped",
-    )
-    .reduce((sum, order) => sum + order.totalAmount, 0);
   const deliveredCount = orders.filter(
     (order) => order.orderStatus === "delivered",
   ).length;
@@ -233,7 +244,14 @@ const OrderHistory = () => {
         </div>
 
         {/* Orders list */}
-        {filtered.length === 0 ? (
+        <div style={{ position: "relative", minHeight: "200px" }}>
+          {loading && orders.length > 0 && (
+            <div className="position-absolute d-flex align-items-center justify-content-center" style={{ top: 0, left: 0, right: 0, bottom: 0, background: "rgba(7,7,15,0.6)", zIndex: 10, borderRadius: 16, backdropFilter: "blur(4px)" }}>
+              <LoadingSpinner />
+            </div>
+          )}
+
+          {filtered.length === 0 ? (
           <div className="nex-glass-card text-center py-5">
             <i
               className="bi bi-inbox nex-text-muted d-block mb-3"
@@ -668,6 +686,7 @@ const OrderHistory = () => {
             })}
           </div>
         )}
+        </div>
       </div>
     </div>
   );

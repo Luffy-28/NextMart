@@ -7,6 +7,7 @@ import {
   updateAddress,
   deleteAddress,
   updateUserDetails,
+  changePassword,
 } from "../controllers/userController.js";
 
 const router = express.Router();
@@ -17,5 +18,6 @@ router.post("/addAddress", authMiddleware, addAddress);
 router.patch("/me", authMiddleware, updateUserDetails);
 router.patch("/address/:id", authMiddleware, updateAddress);
 router.delete("/address/:id", authMiddleware, deleteAddress);
+router.patch("/changePassword",authMiddleware,changePassword);
 
 export default router;

@@ -31,7 +31,18 @@ export const getProducts = async (req, res) => {
       if (maxPrice && !isNaN(parseInt(maxPrice))) query.basePrice.$lte = parseInt(maxPrice);
       if (Object.keys(query.basePrice).length === 0) delete query.basePrice;
     }
-    if (search) query.$text = { $search: search };
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+        { brand: { $regex: search, $options: 'i' } },
+        { tags: { $regex: search, $options: 'i' } },
+        { color: { $regex: search, $options: 'i' } },
+        { size: { $regex: search, $options: 'i' } },
+        { metaTitle: { $regex: search, $options: 'i' } },
+        { metaDescription: { $regex: search, $options: 'i' } },
+      ];
+    }
     
     if (rating && !isNaN(parseInt(rating))) {
       const parsedRating = parseInt(rating);
