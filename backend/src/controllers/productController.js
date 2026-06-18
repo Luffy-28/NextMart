@@ -2,6 +2,20 @@ import Product from "../models/productModel.js";
 import { Category } from "../models/categoryModel.js";
 import { SubCategory } from "../models/subCategoryModel.js";
 import mongoose from "mongoose";
+import {getRecommendationsWithGemini, createEmbedding, cosineSimilarity} from "../helpers/geminaiHelper.js"
+
+const getProductTextForEmbedding = (product) => `
+Name: ${product.name}
+Brand: ${product.brand || ""}
+Category: ${product.category || ""}
+Subcategory: ${product.subCategory || ""}
+Description: ${product.description || ""}
+Tags: ${product.tags?.join(", ") || ""}
+Color: ${product.color || ""}
+Size: ${product.size || ""}
+Price: ${product.discountedPrice || product.basePrice}
+Rating: ${product.rating || 0}
+`;
 
 // Get all products with pagination, sorting and filtering
 export const getProducts = async (req, res) => {
@@ -230,3 +244,7 @@ export const getProductBySlug = async (req, res) => {
     });
   }
 };
+
+
+// recomend products using ai
+

@@ -54,4 +54,7 @@ export const config = {
     secretKey: process.env.STRIPE_SECRET_KEY,
     webhooksecret: process.env.WEBHOOK_SECRET,
   },
+  geminai:{
+    geminiApiKey: process.env.GEMINI_API_KEY,
+  }
 };
