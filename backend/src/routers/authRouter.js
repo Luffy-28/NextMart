@@ -41,7 +41,7 @@ router.post("/googleVerification", verifyGoogleLogin);
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    failureRedirect: "http://localhost:5173/login?error=true",
+    failureRedirect: "https://next-mart-delta.vercel.app/login?error=true",
   }),
   (req, res) => {
     const accessToken = generateAccessToken({
@@ -53,7 +53,7 @@ router.get(
       id: req.user._id,
     });
     res.redirect(
-      `http://localhost:5173/login?token=${accessToken}&ref=${refreshToken}`,
+      `https://next-mart-delta.vercel.app/login?token=${accessToken}&ref=${refreshToken}`,
     );
   },
 );
