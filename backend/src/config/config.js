@@ -49,6 +49,7 @@ export const config = {
     clientId: process.env.CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
     sessionSecret: process.env.SESSION_SECRET,
+    callbackUrl: process.env.GOOGLE_CALLBACK_URL || "https://next-mart-yv1p.vercel.app/api/v1/auth/google/callback",
   },
   stripe: {
     secretKey: process.env.STRIPE_SECRET_KEY,

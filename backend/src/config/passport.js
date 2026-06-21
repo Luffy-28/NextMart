@@ -6,7 +6,7 @@ import {User} from "../models/userModel.js"
 passport.use(new GoogleStrategy({
     clientID: config.google.clientId,
     clientSecret: config.google.clientSecret,
-    callbackURL: 'https://next-mart-yv1p.vercel.app/api/v1/auth/google/callback'
+    callbackURL: config.google.callbackUrl  
 },
 async (accesstoken, refreshToken, profile, done) =>{
     try {
