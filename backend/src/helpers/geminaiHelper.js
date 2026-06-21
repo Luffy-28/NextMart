@@ -1,14 +1,14 @@
-import {GoogleGenAi} from "@google/genai"
+import {GoogleGenAI} from "@google/genai"
 import { config } from "../config/config.js"
 
 
-const ai = new GoogleGenAi({apiKey: config.geminai.geminiApiKey})
+const ai = new GoogleGenAI({apiKey: config.geminai.geminiApiKey})
 
 export async function createEmbedding(text){
     try {
-        const embedding = await ai.models.emedContent({
+        const embedding = await ai.models.embedContent({
             model:"gemini-embedding-2",
-            context: text,
+            contents: text,
         })
         return embedding.embeddings[0].values;
         
