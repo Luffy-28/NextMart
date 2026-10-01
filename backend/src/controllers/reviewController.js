@@ -117,12 +117,13 @@ export const addReview = async (req, res) => {
   }
 };
 
-// Get reviews by product
+// Get reviews by product — only returns APPROVED reviews (admin must approve first)
 export const getReviewByProduct = async (req, res) => {
   try {
     const { productId } = req.params;
 
-    const reviewData = await Review.find({ product: productId })
+    // Filter by isApproved: "approved" so rejected/pending reviews are hidden from customers
+    const reviewData = await Review.find({ product: productId, isApproved: "approved" })
       .populate("user", "name profileImage")
       .sort({ createdAt: -1 });
 

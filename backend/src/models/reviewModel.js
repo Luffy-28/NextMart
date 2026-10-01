@@ -30,6 +30,13 @@ const reviewSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // Admin moderation field — only "approved" reviews show on the product page
+    isApproved: {
+      type: String,
+      enum: ["pending", "approved", "rejected"],
+      default: "pending",
+    },
+
     images: [{ type: String }],
   },
   { timestamps: true },

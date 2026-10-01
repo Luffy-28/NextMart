@@ -23,6 +23,7 @@ import orderRouter from "./src/routers/orderRouter.js";
 import paymentRouter from "./src/routers/paymentRouter.js";
 import cartRouter from "./src/routers/cartRouter.js";
 import reviewRouter from "./src/routers/reviewRouter.js";
+import wishlistRouter from "./src/routers/wishlistRouter.js";
 
 // Swagger Imports
 import swaggerUi from "swagger-ui-express";
@@ -68,6 +69,7 @@ app.use("/api/v1/orders", orderRouter);
 app.use("/api/v1/payments", paymentLimiter, paymentRouter);
 app.use("/api/v1/carts", cartRouter);
 app.use("/api/v1/reviews", generalLimiter, reviewRouter);
+app.use("/api/v1/wishlist", wishlistRouter);
 
 // Setup Swagger API Documentation
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
