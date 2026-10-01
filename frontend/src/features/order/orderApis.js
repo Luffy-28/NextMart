@@ -35,3 +35,12 @@ export const cancelOrderApi = async(orderId) =>{
         isPrivate: "true"
     })
 }
+
+export const submitRefundRequestApi = async (orderId, payload) => {
+  return apiProcessor({
+    url: `${import.meta.env.VITE_ROOT_URL}/api/v1/refunds/${orderId}`,
+    method: "POST",
+    data: payload,
+    isPrivate: true,
+  });
+};

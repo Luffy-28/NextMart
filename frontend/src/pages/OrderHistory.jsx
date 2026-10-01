@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
-import { cancelOrder, getOrder } from "../features/order/orderAction";
+import { cancelOrder, getOrder, submitRefundRequestAction } from "../features/order/orderAction";
 import LoadingSpinner from "../components/ui/LoadingSpinner";
 
 const STATUS_CONFIG = {
@@ -86,9 +86,66 @@ const OrderHistory = () => {
     return date.toLocaleDateString();
   };
 
-  const handleCancel = (orderId) => {
-    // Implement cancel logic here
-    dispatch(cancelOrder(orderId));
+  const [refundModal, setRefundModal] = useState(null); // null | { order, type: 'cancel' | 'return' }
+  const [refundReason, setRefundReason] = useState("");
+  const [refundImages, setRefundImages] = useState([]);
+  const [imageUrlInput, setImageUrlInput] = useState("");
+  const [submittingRefund, setSubmittingRefund] = useState(false);
+  const [refundError, setRefundError] = useState("");
+  const [refundSuccessMsg, setRefundSuccessMsg] = useState("");
+
+  const openRefundModal = (order, type) => {
+    setRefundModal({ order, type });
+    setRefundReason("");
+    setRefundImages([]);
+    setImageUrlInput("");
+    setRefundError("");
+    setRefundSuccessMsg("");
+  };
+
+  const handleAddImage = () => {
+    if (!imageUrlInput.trim()) return;
+    setRefundImages((prev) => [...prev, imageUrlInput.trim()]);
+    setImageUrlInput("");
+  };
+
+  const handleRemoveImage = (index) => {
+    setRefundImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const handleSubmitRefund = async () => {
+    if (!refundReason || refundReason.trim().length < 5) {
+      setRefundError("Please provide a reason of at least 5 characters.");
+      return;
+    }
+    if (refundModal.type === "return" && refundImages.length === 0) {
+      setRefundError("Please provide at least one photo URL showing the item condition for a return.");
+      return;
+    }
+
+    try {
+      setSubmittingRefund(true);
+      setRefundError("");
+      const res = await dispatch(
+        submitRefundRequestAction(refundModal.order._id, {
+          type: refundModal.type,
+          reason: refundReason.trim(),
+          images: refundImages,
+        })
+      );
+      if (res && res.status === "success") {
+        setRefundSuccessMsg(res.message || "Request submitted successfully!");
+        setTimeout(() => {
+          setRefundModal(null);
+        }, 1200);
+      } else {
+        setRefundError(res?.message || "Failed to submit request");
+      }
+    } catch (err) {
+      setRefundError(err.message || "Something went wrong");
+    } finally {
+      setSubmittingRefund(false);
+    }
   };
 
   const deliveredCount = orders.filter(
@@ -585,6 +642,116 @@ const OrderHistory = () => {
                                 </span>
                               </div>
                             </div>
+
+                            {/* Refund Request Status Banner if present */}
+                            {order.refundRequest && (
+                              <div
+                                className="mt-4 p-4 rounded-3"
+                                style={{
+                                  background:
+                                    order.refundRequest.status === "approved"
+                                      ? "rgba(16,185,129,0.08)"
+                                      : order.refundRequest.status === "partial"
+                                      ? "rgba(59,130,246,0.08)"
+                                      : order.refundRequest.status === "rejected"
+                                      ? "rgba(239,68,68,0.08)"
+                                      : "rgba(245,158,11,0.08)",
+                                  border: `1px solid ${
+                                    order.refundRequest.status === "approved"
+                                      ? "rgba(16,185,129,0.3)"
+                                      : order.refundRequest.status === "partial"
+                                      ? "rgba(59,130,246,0.3)"
+                                      : order.refundRequest.status === "rejected"
+                                      ? "rgba(239,68,68,0.3)"
+                                      : "rgba(245,158,11,0.3)"
+                                  }`,
+                                }}
+                              >
+                                <div className="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+                                  <div className="d-flex align-items-center gap-2">
+                                    <i
+                                      className={`bi ${
+                                        order.refundRequest.status === "approved"
+                                          ? "bi-check-circle-fill text-success"
+                                          : order.refundRequest.status === "partial"
+                                          ? "bi-pie-chart-fill text-primary"
+                                          : order.refundRequest.status === "rejected"
+                                          ? "bi-x-circle-fill text-danger"
+                                          : "bi-hourglass-split text-warning"
+                                      }`}
+                                      style={{ fontSize: "1.2rem" }}
+                                    />
+                                    <span className="nex-text-light fw-bold" style={{ fontSize: "0.95rem" }}>
+                                      {order.refundRequest.type === "cancel" ? "Cancellation" : "Return"} &amp; Refund:{" "}
+                                      <span
+                                        style={{
+                                          color:
+                                            order.refundRequest.status === "approved"
+                                              ? "#34d399"
+                                              : order.refundRequest.status === "partial"
+                                              ? "#60a5fa"
+                                              : order.refundRequest.status === "rejected"
+                                              ? "#f87171"
+                                              : "#fbbf24",
+                                          textTransform: "capitalize",
+                                        }}
+                                      >
+                                        {order.refundRequest.status === "approved"
+                                          ? `Full Refund Approved ($${(order.refundRequest.refundAmount || 0).toFixed(2)})`
+                                          : order.refundRequest.status === "partial"
+                                          ? `Partial Refund Approved ($${(order.refundRequest.refundAmount || 0).toFixed(2)})`
+                                          : order.refundRequest.status === "rejected"
+                                          ? "Request Denied"
+                                          : "Awaiting Admin Review"}
+                                      </span>
+                                    </span>
+                                  </div>
+                                  <span className="nex-text-muted" style={{ fontSize: "0.8rem" }}>
+                                    Submitted: {new Date(order.refundRequest.createdAt).toLocaleDateString()}
+                                  </span>
+                                </div>
+
+                                <p className="nex-text-muted mb-2" style={{ fontSize: "0.85rem" }}>
+                                  <strong className="nex-text-light">Reason:</strong> "{order.refundRequest.reason}"
+                                </p>
+
+                                {order.refundRequest.images?.length > 0 && (
+                                  <div className="d-flex gap-2 flex-wrap mb-2">
+                                    {order.refundRequest.images.map((img, i) => (
+                                      <img
+                                        key={i}
+                                        src={img}
+                                        alt={`evidence-${i}`}
+                                        style={{
+                                          width: 50,
+                                          height: 50,
+                                          borderRadius: 6,
+                                          objectFit: "cover",
+                                          border: "1px solid var(--nex-border)",
+                                        }}
+                                      />
+                                    ))}
+                                  </div>
+                                )}
+
+                                {order.refundRequest.adminNote && (
+                                  <div
+                                    className="p-3 rounded-2 mt-2"
+                                    style={{
+                                      background: "rgba(0,0,0,0.25)",
+                                      borderLeft: "3px solid var(--nex-purple)",
+                                    }}
+                                  >
+                                    <p className="nex-text-light mb-1 fw-semibold" style={{ fontSize: "0.82rem" }}>
+                                      <i className="bi bi-shield-check me-1" /> Admin Assessment:
+                                    </p>
+                                    <p className="nex-text-muted mb-0 fst-italic" style={{ fontSize: "0.85rem" }}>
+                                      "{order.refundRequest.adminNote}"
+                                    </p>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -616,16 +783,21 @@ const OrderHistory = () => {
                               <i className="bi bi-star me-2" />
                               Write Review
                             </button>
-                            <button
-                              className="nex-btn-outline ms-auto"
-                              style={{
-                                padding: "10px 22px",
-                                fontSize: "0.84rem",
-                              }}
-                            >
-                              <i className="bi bi-arrow-return-left me-2" />
-                              Return Item
-                            </button>
+                            {!order.refundRequest && (
+                              <button
+                                className="nex-btn-outline ms-auto"
+                                onClick={() => openRefundModal(order, "return")}
+                                style={{
+                                  padding: "10px 22px",
+                                  fontSize: "0.84rem",
+                                  borderColor: "rgba(139,92,246,0.5)",
+                                  color: "#a78bfa",
+                                }}
+                              >
+                                <i className="bi bi-arrow-return-left me-2" />
+                                Return Item
+                              </button>
+                            )}
                           </>
                         )}
                         {order.orderStatus === "shipped" && (
@@ -643,19 +815,21 @@ const OrderHistory = () => {
                         {(order.orderStatus === "processing" ||
                           order.orderStatus === "confirmed" ||
                           order.orderStatus === "pending") && (
-                          <button
-                            className="nex-btn-outline"
-                            onClick={() => handleCancel(order._id)}
-                            style={{
-                              padding: "10px 22px",
-                              fontSize: "0.84rem",
-                              borderColor: "rgba(239,68,68,0.4)",
-                              color: "#f87171",
-                            }}
-                          >
-                            <i className="bi bi-x-circle me-2" />
-                            Cancel Order
-                          </button>
+                          !order.refundRequest && (
+                            <button
+                              className="nex-btn-outline"
+                              onClick={() => openRefundModal(order, "cancel")}
+                              style={{
+                                padding: "10px 22px",
+                                fontSize: "0.84rem",
+                                borderColor: "rgba(239,68,68,0.4)",
+                                color: "#f87171",
+                              }}
+                            >
+                              <i className="bi bi-x-circle me-2" />
+                              Cancel Order
+                            </button>
+                          )
                         )}
                         {(order.orderStatus === "cancelled" ||
                           order.orderStatus === "returned") && (
@@ -672,7 +846,7 @@ const OrderHistory = () => {
                           </Link>
                         )}
                         <button
-                          className={`nex-btn-outline ${order.orderStatus === "delivered" ? "" : "ms-auto"}`}
+                          className={`nex-btn-outline ${order.orderStatus === "delivered" && !order.refundRequest ? "" : "ms-auto"}`}
                           style={{ padding: "10px 22px", fontSize: "0.84rem" }}
                         >
                           <i className="bi bi-file-text me-2" />
@@ -688,6 +862,248 @@ const OrderHistory = () => {
         )}
         </div>
       </div>
+
+      {/* ── Cancel / Return Request Modal ───────────────────────── */}
+      {refundModal && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: "rgba(0, 0, 0, 0.75)",
+            backdropFilter: "blur(6px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 9999,
+            padding: "20px",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !submittingRefund) setRefundModal(null);
+          }}
+        >
+          <div
+            className="nex-glass-card"
+            style={{
+              width: "100%",
+              maxWidth: 540,
+              borderRadius: 16,
+              padding: "28px",
+              boxShadow: "0 20px 50px rgba(0,0,0,0.5)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              animation: "fadeIn 0.2s ease-out",
+            }}
+          >
+            {/* Header */}
+            <div className="d-flex justify-content-between align-items-center mb-3">
+              <div className="d-flex align-items-center gap-2">
+                <i
+                  className={`bi ${refundModal.type === "cancel" ? "bi-x-circle-fill text-danger" : "bi-arrow-return-left text-warning"}`}
+                  style={{ fontSize: "1.4rem" }}
+                />
+                <h5 className="nex-text-light fw-bold mb-0">
+                  {refundModal.type === "cancel" ? "Cancel Order" : "Request Return & Refund"}
+                </h5>
+              </div>
+              <button
+                type="button"
+                className="btn-close btn-close-white"
+                onClick={() => !submittingRefund && setRefundModal(null)}
+              />
+            </div>
+
+            <p className="nex-text-muted mb-3" style={{ fontSize: "0.85rem", lineHeight: 1.5 }}>
+              {refundModal.type === "cancel"
+                ? `Cancelling Order #${refundModal.order?.orderNumber}. A full refund request will be forwarded to our team to initiate payment reversal.`
+                : `Return request for Order #${refundModal.order?.orderNumber}. Please provide the reason and clear photos of the item's condition so our team can approve your refund.`}
+            </p>
+
+            {/* Error or Success feedback */}
+            {refundError && (
+              <div
+                className="p-3 mb-3 rounded-2"
+                style={{
+                  background: "rgba(239, 68, 68, 0.15)",
+                  border: "1px solid rgba(239, 68, 68, 0.3)",
+                  color: "#f87171",
+                  fontSize: "0.85rem",
+                }}
+              >
+                <i className="bi bi-exclamation-triangle-fill me-2" />
+                {refundError}
+              </div>
+            )}
+
+            {refundSuccessMsg && (
+              <div
+                className="p-3 mb-3 rounded-2"
+                style={{
+                  background: "rgba(16, 185, 129, 0.15)",
+                  border: "1px solid rgba(16, 185, 129, 0.3)",
+                  color: "#34d399",
+                  fontSize: "0.85rem",
+                }}
+              >
+                <i className="bi bi-check-circle-fill me-2" />
+                {refundSuccessMsg}
+              </div>
+            )}
+
+            {/* Form */}
+            <div className="mb-3">
+              <label className="nex-text-light fw-semibold mb-2" style={{ fontSize: "0.85rem" }}>
+                Reason for {refundModal.type === "cancel" ? "Cancellation" : "Return"} <span className="text-danger">*</span>
+              </label>
+              <textarea
+                className="form-control"
+                rows={3}
+                placeholder={
+                  refundModal.type === "cancel"
+                    ? "Explain why you want to cancel (e.g., ordered by mistake, found better price)..."
+                    : "Describe the condition or reason (e.g., defective item, wrong size, damaged packaging)..."
+                }
+                value={refundReason}
+                onChange={(e) => setRefundReason(e.target.value)}
+                style={{
+                  background: "rgba(255,255,255,0.06)",
+                  border: "1px solid var(--nex-border)",
+                  color: "white",
+                  fontSize: "0.88rem",
+                  borderRadius: 10,
+                }}
+              />
+            </div>
+
+            {/* Images section */}
+            <div className="mb-4">
+              <label className="nex-text-light fw-semibold mb-2" style={{ fontSize: "0.85rem" }}>
+                {refundModal.type === "return" ? (
+                  <>
+                    Item Photos <span className="text-danger">* (Required for Returns)</span>
+                  </>
+                ) : (
+                  "Photos / Evidence (Optional)"
+                )}
+              </label>
+
+              <div className="d-flex gap-2 mb-2">
+                <input
+                  type="text"
+                  className="form-control"
+                  placeholder="Paste image URL (e.g., https://...)"
+                  value={imageUrlInput}
+                  onChange={(e) => setImageUrlInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddImage();
+                    }
+                  }}
+                  style={{
+                    background: "rgba(255,255,255,0.06)",
+                    border: "1px solid var(--nex-border)",
+                    color: "white",
+                    fontSize: "0.85rem",
+                    borderRadius: 8,
+                  }}
+                />
+                <button
+                  type="button"
+                  className="nex-btn-outline"
+                  onClick={handleAddImage}
+                  style={{ padding: "8px 16px", fontSize: "0.82rem", whiteSpace: "nowrap" }}
+                >
+                  <i className="bi bi-plus-lg me-1" /> Add
+                </button>
+              </div>
+
+              {/* Thumbnails list */}
+              {refundImages.length > 0 && (
+                <div className="d-flex gap-2 flex-wrap mt-2">
+                  {refundImages.map((img, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        position: "relative",
+                        width: 60,
+                        height: 60,
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        border: "1px solid rgba(255,255,255,0.2)",
+                      }}
+                    >
+                      <img src={img} alt="Evidence" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveImage(idx)}
+                        style={{
+                          position: "absolute",
+                          top: 2,
+                          right: 2,
+                          width: 18,
+                          height: 18,
+                          borderRadius: "50%",
+                          background: "rgba(239,68,68,0.9)",
+                          border: "none",
+                          color: "white",
+                          fontSize: 10,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          cursor: "pointer",
+                          padding: 0,
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Footer Buttons */}
+            <div className="d-flex justify-content-end gap-2 pt-2" style={{ borderTop: "1px solid var(--nex-border)" }}>
+              <button
+                type="button"
+                className="nex-btn-outline"
+                onClick={() => setRefundModal(null)}
+                disabled={submittingRefund}
+                style={{ padding: "9px 20px", fontSize: "0.85rem" }}
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                className="nex-btn-primary"
+                onClick={handleSubmitRefund}
+                disabled={submittingRefund}
+                style={{
+                  padding: "9px 24px",
+                  fontSize: "0.85rem",
+                  background:
+                    refundModal.type === "cancel"
+                      ? "linear-gradient(135deg, #ef4444, #dc2626)"
+                      : "var(--nex-gradient)",
+                }}
+              >
+                {submittingRefund ? (
+                  "Submitting..."
+                ) : (
+                  <>
+                    <i
+                      className={`bi ${refundModal.type === "cancel" ? "bi-x-circle" : "bi-send"} me-2`}
+                    />
+                    Submit {refundModal.type === "cancel" ? "Cancellation" : "Return Request"}
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

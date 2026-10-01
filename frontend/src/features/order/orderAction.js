@@ -3,6 +3,7 @@ import {
   createOrderApi,
   getOrderByIdApi,
   getOrdersApi,
+  submitRefundRequestApi,
 } from "./orderApis";
 import {
   setError,
@@ -75,3 +76,24 @@ export const cancelOrder = (id) => async (dispatch) => {
     dispatch(setloading(false));
   }
 };
+
+export const submitRefundRequestAction = (orderId, payload) => async (dispatch) => {
+  try {
+    dispatch(setloading(true));
+    const data = await submitRefundRequestApi(orderId, payload);
+    if (data.status === "success") {
+      dispatch(getOrder());
+      return data;
+    } else {
+      dispatch(setError(data.message || "Failed to submit refund request"));
+      return data;
+    }
+  } catch (error) {
+    console.error(error);
+    dispatch(setError("Failed to submit refund request"));
+    return { status: "error", message: error.message };
+  } finally {
+    dispatch(setloading(false));
+  }
+};
+

@@ -2,20 +2,35 @@ import { Order } from "../models/orderModel.js";
 import Product from "../models/productModel.js";
 import { Cart } from "../models/cartModel.js";
 import { Address } from "../models/addressModel.js";
+import { RefundRequest } from "../models/refundRequestModel.js";
 
 // get all the orders for a user
 export const getMyOrders = async (req, res) => {
   try {
     const userId = req.user._id;
-    const orders = await Order.find({ user: userId })
-      .populate("items.product")
-      .populate("shippingAddress")
-      .sort({ createdAt: -1 });
+    const [orders, refundRequests] = await Promise.all([
+      Order.find({ user: userId })
+        .populate("items.product")
+        .populate("shippingAddress")
+        .sort({ createdAt: -1 })
+        .lean(),
+      RefundRequest.find({ user: userId }).lean(),
+    ]);
+
+    const refundMap = {};
+    refundRequests.forEach((r) => {
+      refundMap[r.order.toString()] = r;
+    });
+
+    const ordersWithRefunds = orders.map((order) => ({
+      ...order,
+      refundRequest: refundMap[order._id.toString()] || null,
+    }));
 
     return res.status(200).send({
       status: "success",
       message: "Orders fetched successfully",
-      data: orders,
+      data: ordersWithRefunds,
     });
   } catch (error) {
     console.error("Get all orders error:", error);
@@ -32,15 +47,23 @@ export const getOrderById = async (req, res) => {
     const orderId = req.params.id;
     const userId = req.user._id;
 
-    const order = await Order.findOne({ _id: orderId, user: userId })
-      .populate("items.product")
-      .populate("shippingAddress");
+    const [order, refundRequest] = await Promise.all([
+      Order.findOne({ _id: orderId, user: userId })
+        .populate("items.product")
+        .populate("shippingAddress")
+        .lean(),
+      RefundRequest.findOne({ order: orderId, user: userId }).lean(),
+    ]);
+
     if (!order) {
       return res.status(404).send({
         status: "error",
         message: "Order not found",
       });
     }
+
+    order.refundRequest = refundRequest || null;
+
     return res.status(200).send({
       status: "success",
       message: "Order details fetched successfully",
